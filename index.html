@@ -12,6 +12,7 @@
   document.documentElement.setAttribute('data-theme', theme);
 })();
 </script>
+<link rel="icon" type="image/svg+xml" href="silat-icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -82,7 +83,7 @@
   .hero-eyebrow{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mint);margin-bottom:28px;position:relative;z-index:1;}
   .hero-eyebrow::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 12px var(--mint);}
   .hero-title{font-family:var(--display);font-weight:700;font-size:clamp(44px,7vw,96px);line-height:0.96;letter-spacing:-0.04em;margin-bottom:32px;position:relative;z-index:1;}
-  .hero-title .first-name{display:block;font-size:0.32em;font-weight:500;letter-spacing:0.02em;color:var(--ink);margin-bottom:6px;}
+  .hero-title .first-name{display:block;font-size:0.7em;font-weight:500;letter-spacing:0.02em;color:var(--ink);margin-bottom:8px;}
   .hero-title .first-name span{transform:translateY(60%) rotate(0);}
   .split-line{display:block;overflow:hidden;}
   .split-line span{display:inline-block;opacity:0;transform:translateY(110%) rotate(2deg);animation:splitIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards;}
@@ -151,13 +152,13 @@
   .project-card-num{font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:0.06em;margin-bottom:28px;display:block;}
   .project-name{font-family:var(--display);font-weight:600;font-size:clamp(22px,2.6vw,30px);letter-spacing:-0.02em;margin-bottom:16px;transition:color 0.2s;max-width:18ch;}
   .project-card:hover .project-name{color:var(--mint);}
-  .project-desc{font-size:14.5px;line-height:1.75;color:var(--ink-dim);margin-bottom:24px;max-width:min(42ch,calc(100% - 24px));}
-  .project-tags{display:flex;flex-wrap:wrap;gap:7px;max-width:calc(100% - 148px);position:relative;z-index:1;}
-  .project-arrow{position:absolute;top:40px;right:40px;width:34px;height:34px;border:1px solid var(--border-mid);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:border-color 0.25s,transform 0.25s,background 0.25s;z-index:2;}
+  .project-desc{font-size:14.5px;line-height:1.75;color:var(--ink-dim);margin-bottom:24px;max-width:42ch;}
+  .project-tags{display:flex;flex-wrap:wrap;gap:7px;}
+  .project-arrow{position:absolute;top:40px;right:40px;width:34px;height:34px;border:1px solid var(--border-mid);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:border-color 0.25s,transform 0.25s,background 0.25s;}
   .project-card:hover .project-arrow{border-color:var(--mint);background:rgba(var(--mint-rgb),0.08);transform:rotate(45deg);}
   .project-arrow svg{stroke:var(--ink-dim);transition:stroke 0.2s;}
   .project-card:hover .project-arrow svg{stroke:var(--mint);}
-  .project-sig{position:absolute;bottom:32px;right:32px;width:130px;height:60px;opacity:0.85;z-index:0;pointer-events:none;}
+  .project-sig{position:absolute;bottom:28px;right:28px;width:130px;height:60px;opacity:0.85;}
   .project-sig path,.project-sig circle{stroke:var(--ink-faint);transition:stroke 0.3s;}
   .project-card:hover .project-sig path,.project-card:hover .project-sig circle{stroke:var(--mint);}
   .draw path{transition:stroke-dashoffset 1.4s cubic-bezier(0.16,1,0.3,1);}
@@ -220,7 +221,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <a href="#" class="nav-logo">Ahmed<span class="dot">.</span></a>
+    <a href="#" class="nav-logo">M Ahmed Silat</a>
     <div class="nav-right">
       <ul class="nav-links">
         <li><a href="#experience">Experience</a></li>
@@ -381,24 +382,6 @@
 
     <article class="project-card reveal">
       <span class="project-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      <span class="project-card-num">Dec 2025 – Jun 2026</span>
-      <h3 class="project-name">Crypto Compliance &amp; Analytics Systems</h3>
-      <p class="project-desc">Built AI compliance, blockchain analytics, trading-analysis tools, backend APIs, data pipelines, and multi-agent dashboards for crypto monitoring and reporting workflows.</p>
-      <div class="project-tags"><span class="tag">FastAPI</span><span class="tag">Redis</span><span class="tag">TimescaleDB</span><span class="tag">Supabase</span><span class="tag">LLM Agents</span></div>
-      <svg class="project-sig draw" viewBox="0 0 130 60" fill="none">
-        <rect x="6" y="14" width="28" height="28" rx="2" stroke-width="1.6"/>
-        <rect x="42" y="14" width="28" height="28" rx="2" stroke-width="1.6"/>
-        <rect x="78" y="14" width="28" height="28" rx="2" stroke-width="1.6"/>
-        <rect x="24" y="38" width="28" height="14" rx="2" stroke-width="1.6"/>
-        <rect x="60" y="38" width="28" height="14" rx="2" stroke-width="1.6"/>
-        <path d="M34 28H42" stroke-width="1.4"/>
-        <path d="M70 28H78" stroke-width="1.4"/>
-        <path d="M56 42V38" stroke-width="1.4"/>
-      </svg>
-    </article>
-
-    <article class="project-card reveal">
-      <span class="project-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <span class="project-card-num">Sep 2025 – May 2026</span>
       <h3 class="project-name">AgenTrail — Agentic AI Trip Planner</h3>
       <p class="project-desc">Led development of an agentic AI trip planner that generates personalized itineraries from live data and APIs, integrating LLM/web agents with Vertex AI and Google Cloud.</p>
@@ -413,52 +396,16 @@
 
     <article class="project-card reveal">
       <span class="project-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      <span class="project-card-num">Jul 2025 – Aug 2025</span>
-      <h3 class="project-name">RoveHaven AI Workflow Automation</h3>
-      <p class="project-desc">Built 30+ n8n AI workflows for lead generation, scraping, Airbnb listing analysis, host research, pricing signals, review insights, and online presence automation.</p>
-      <div class="project-tags"><span class="tag">n8n</span><span class="tag">AI Agents</span><span class="tag">Scraping</span><span class="tag">Automation</span></div>
+      <span class="project-card-num">Jan 2025 – May 2025</span>
+      <h3 class="project-name">Shopify Storefront Delivery</h3>
+      <p class="project-desc">Led a 5-person team to deliver a Shopify storefront with custom HTML/CSS, SEO foundations, and behavior tracking for a launch-ready ecommerce presentation.</p>
+      <div class="project-tags"><span class="tag">Shopify</span><span class="tag">SEO</span><span class="tag">HTML/CSS</span><span class="tag">Analytics</span><span class="tag">Team Lead</span></div>
       <svg class="project-sig draw" viewBox="0 0 130 60" fill="none">
-        <circle cx="20" cy="30" r="8" stroke-width="1.6"/>
-        <circle cx="65" cy="16" r="8" stroke-width="1.6"/>
-        <circle cx="65" cy="44" r="8" stroke-width="1.6"/>
-        <circle cx="110" cy="30" r="8" stroke-width="1.6"/>
-        <path d="M28 26L57 18" stroke-width="1.4"/>
-        <path d="M28 34L57 42" stroke-width="1.4"/>
-        <path d="M73 16L102 26" stroke-width="1.4"/>
-        <path d="M73 44L102 34" stroke-width="1.4"/>
-      </svg>
-    </article>
-
-    <article class="project-card reveal">
-      <span class="project-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      <span class="project-card-num">2025</span>
-      <h3 class="project-name">Private Legal RAG Assistant</h3>
-      <p class="project-desc">Built an LLM knowledge assistant for legal document work: ingesting contracts, answering questions with source-grounded citations, and supporting clause drafting workflows.</p>
-      <div class="project-tags"><span class="tag">Claude API</span><span class="tag">RAG</span><span class="tag">FastAPI</span></div>
-      <svg class="project-sig draw" viewBox="0 0 130 60" fill="none">
-        <path d="M6 10H90" stroke-width="1.6" stroke-linecap="round"/>
-        <path d="M6 22H78" stroke-width="1.4" stroke-linecap="round"/>
-        <path d="M6 34H84" stroke-width="1.4" stroke-linecap="round"/>
-        <path d="M6 46H66" stroke-width="1.4" stroke-linecap="round"/>
-        <path d="M98 10V50" stroke-width="1.6" stroke-linecap="round"/>
-        <path d="M98 50C108 44 118 36 124 26" stroke-width="1.6" stroke-linecap="round"/>
-        <circle cx="124" cy="26" r="3" fill="var(--bg)" stroke-width="1.6"/>
-      </svg>
-    </article>
-
-    <article class="project-card reveal">
-      <span class="project-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      <span class="project-card-num">Independent</span>
-      <h3 class="project-name">Multi-Model LLM Benchmarking</h3>
-      <p class="project-desc">Used OpenRouter and native provider APIs to compare Claude, GPT, Gemini, and open-source models (Minimax, Gemma) head-to-head on classification and price-movement prediction tasks, evaluating accuracy and cost tradeoffs across providers.</p>
-      <div class="project-tags"><span class="tag">OpenRouter</span><span class="tag">Claude</span><span class="tag">GPT</span><span class="tag">Gemini</span><span class="tag">Model Evaluation</span></div>
-      <svg class="project-sig draw" viewBox="0 0 130 60" fill="none">
-        <path d="M6 14H72" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M6 30H96" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M6 46H56" stroke-width="1.8" stroke-linecap="round"/>
-        <circle cx="72" cy="14" r="2.6" fill="var(--bg)" stroke-width="1.6"/>
-        <circle cx="96" cy="30" r="2.6" fill="var(--bg)" stroke-width="1.6"/>
-        <circle cx="56" cy="46" r="2.6" fill="var(--bg)" stroke-width="1.6"/>
+        <path d="M6 52H124" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M18 52V36" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M46 52V26" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M74 52V40" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M102 52V14" stroke-width="1.6" stroke-linecap="round"/>
       </svg>
     </article>
 
@@ -476,6 +423,35 @@
         <path d="M84 52V20" stroke-width="1.6" stroke-linecap="round"/>
         <path d="M106 52V30" stroke-width="1.6" stroke-linecap="round"/>
         <path d="M14 40C34 30 50 36 70 18S110 10 120 16" stroke-width="1.4" stroke-dasharray="4 4"/>
+      </svg>
+    </article>
+
+    <article class="project-card reveal">
+      <span class="project-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="project-card-num">Dec 2024 – Jul 2025</span>
+      <h3 class="project-name">B2B Sustainability Platform</h3>
+      <p class="project-desc">Built the MVP for a B2B sustainability platform from the ground up, supporting investor presentations and early product validation alongside a full website rebuild.</p>
+      <div class="project-tags"><span class="tag">MVP</span><span class="tag">WordPress</span><span class="tag">Figma</span><span class="tag">Product Validation</span></div>
+      <svg class="project-sig draw" viewBox="0 0 130 60" fill="none">
+        <path d="M6 52H124" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M6 52V6" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M6 46C30 46 36 38 50 38S64 24 80 24 98 10 124 10" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </article>
+
+    <article class="project-card reveal">
+      <span class="project-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="project-card-num">Independent</span>
+      <h3 class="project-name">Multi-Model LLM Benchmarking</h3>
+      <p class="project-desc">Used OpenRouter and native provider APIs to compare Claude, GPT, Gemini, and open-source models (Minimax, Gemma) head-to-head on classification and price-movement prediction tasks, evaluating accuracy and cost tradeoffs across providers.</p>
+      <div class="project-tags"><span class="tag">OpenRouter</span><span class="tag">Claude</span><span class="tag">GPT</span><span class="tag">Gemini</span><span class="tag">Model Evaluation</span></div>
+      <svg class="project-sig draw" viewBox="0 0 130 60" fill="none">
+        <path d="M6 14H72" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M6 30H96" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M6 46H56" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="72" cy="14" r="2.6" fill="var(--bg)" stroke-width="1.6"/>
+        <circle cx="96" cy="30" r="2.6" fill="var(--bg)" stroke-width="1.6"/>
+        <circle cx="56" cy="46" r="2.6" fill="var(--bg)" stroke-width="1.6"/>
       </svg>
     </article>
 
@@ -499,29 +475,54 @@
 
     <article class="project-card reveal">
       <span class="project-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      <span class="project-card-num">Jan 2025 – May 2025</span>
-      <h3 class="project-name">Shopify Storefront Delivery</h3>
-      <p class="project-desc">Led a 5-person team to deliver a Shopify storefront with custom HTML/CSS, SEO foundations, and behavior tracking for a launch-ready ecommerce presentation.</p>
-      <div class="project-tags"><span class="tag">Shopify</span><span class="tag">SEO</span><span class="tag">HTML/CSS</span><span class="tag">Analytics</span><span class="tag">Team Lead</span></div>
+      <span class="project-card-num">2025</span>
+      <h3 class="project-name">Private Legal RAG Assistant</h3>
+      <p class="project-desc">Built an LLM knowledge assistant for legal document work: ingesting contracts, answering questions with source-grounded citations, and supporting clause drafting workflows.</p>
+      <div class="project-tags"><span class="tag">Claude API</span><span class="tag">RAG</span><span class="tag">FastAPI</span></div>
       <svg class="project-sig draw" viewBox="0 0 130 60" fill="none">
-        <path d="M6 52H124" stroke-width="1.6" stroke-linecap="round"/>
-        <path d="M18 52V36" stroke-width="1.6" stroke-linecap="round"/>
-        <path d="M46 52V26" stroke-width="1.6" stroke-linecap="round"/>
-        <path d="M74 52V40" stroke-width="1.6" stroke-linecap="round"/>
-        <path d="M102 52V14" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M6 10H90" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M6 22H78" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M6 34H84" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M6 46H66" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M98 10V50" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M98 50C108 44 118 36 124 26" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="124" cy="26" r="3" fill="var(--bg)" stroke-width="1.6"/>
       </svg>
     </article>
 
     <article class="project-card reveal">
       <span class="project-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      <span class="project-card-num">Dec 2024 – Jul 2025</span>
-      <h3 class="project-name">B2B Sustainability Platform</h3>
-      <p class="project-desc">Built the MVP for a B2B sustainability platform from the ground up, supporting investor presentations and early product validation alongside a full website rebuild.</p>
-      <div class="project-tags"><span class="tag">MVP</span><span class="tag">WordPress</span><span class="tag">Figma</span><span class="tag">Product Validation</span></div>
+      <span class="project-card-num">Dec 2025 – Jun 2026</span>
+      <h3 class="project-name">Crypto Compliance &amp; Analytics Systems</h3>
+      <p class="project-desc">Built AI compliance, blockchain analytics, trading-analysis tools, backend APIs, data pipelines, and multi-agent dashboards for crypto monitoring and reporting workflows.</p>
+      <div class="project-tags"><span class="tag">FastAPI</span><span class="tag">Redis</span><span class="tag">TimescaleDB</span><span class="tag">Supabase</span><span class="tag">LLM Agents</span></div>
       <svg class="project-sig draw" viewBox="0 0 130 60" fill="none">
-        <path d="M6 52H124" stroke-width="1.6" stroke-linecap="round"/>
-        <path d="M6 52V6" stroke-width="1.6" stroke-linecap="round"/>
-        <path d="M6 46C30 46 36 38 50 38S64 24 80 24 98 10 124 10" stroke-width="1.8" stroke-linecap="round"/>
+        <rect x="6" y="14" width="28" height="28" rx="2" stroke-width="1.6"/>
+        <rect x="42" y="14" width="28" height="28" rx="2" stroke-width="1.6"/>
+        <rect x="78" y="14" width="28" height="28" rx="2" stroke-width="1.6"/>
+        <rect x="24" y="38" width="28" height="14" rx="2" stroke-width="1.6"/>
+        <rect x="60" y="38" width="28" height="14" rx="2" stroke-width="1.6"/>
+        <path d="M34 28H42" stroke-width="1.4"/>
+        <path d="M70 28H78" stroke-width="1.4"/>
+        <path d="M56 42V38" stroke-width="1.4"/>
+      </svg>
+    </article>
+
+    <article class="project-card reveal">
+      <span class="project-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="project-card-num">Jul 2025 – Aug 2025</span>
+      <h3 class="project-name">RoveHaven AI Workflow Automation</h3>
+      <p class="project-desc">Built 30+ n8n AI workflows for lead generation, scraping, Airbnb listing analysis, host research, pricing signals, review insights, and online presence automation.</p>
+      <div class="project-tags"><span class="tag">n8n</span><span class="tag">AI Agents</span><span class="tag">Scraping</span><span class="tag">Automation</span></div>
+      <svg class="project-sig draw" viewBox="0 0 130 60" fill="none">
+        <circle cx="20" cy="30" r="8" stroke-width="1.6"/>
+        <circle cx="65" cy="16" r="8" stroke-width="1.6"/>
+        <circle cx="65" cy="44" r="8" stroke-width="1.6"/>
+        <circle cx="110" cy="30" r="8" stroke-width="1.6"/>
+        <path d="M28 26L57 18" stroke-width="1.4"/>
+        <path d="M28 34L57 42" stroke-width="1.4"/>
+        <path d="M73 16L102 26" stroke-width="1.4"/>
+        <path d="M73 44L102 34" stroke-width="1.4"/>
       </svg>
     </article>
 
