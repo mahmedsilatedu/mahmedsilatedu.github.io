@@ -1,0 +1,493 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgenTrail Case Study | Ahmed Silat</title>
+<meta name="description" content="Case study for AgenTrail, an agentic AI trip planner built by Ahmed Silat with React, FastAPI, Gemini agents, ML ranking, and streaming itinerary generation.">
+<script>
+(function(){
+  var saved = localStorage.getItem('theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+<link rel="icon" type="image/svg+xml" href="silat-icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root,[data-theme="dark"]{
+    --bg:#07070a; --surface:#0e0e13; --surface-2:#13131a;
+    --border:rgba(245,245,247,0.10); --border-mid:rgba(245,245,247,0.18);
+    --ink:#f5f5f7; --ink-dim:rgba(245,245,247,0.78); --ink-faint:rgba(245,245,247,0.58);
+    --mint:#3b82f6; --mint-rgb:59,130,246; --violet:#6366f1;
+    --grad:linear-gradient(120deg,#0433a2,#5289ff);
+    --on-accent:#ffffff; --nav-bg:rgba(7,7,10,0.72);
+    --display:'Bricolage Grotesque',system-ui,sans-serif; --body:'Hanken Grotesk',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  [data-theme="light"]{
+    --bg:#f8f8f5; --surface:#ffffff; --surface-2:#f1f1ee;
+    --border:rgba(10,10,18,0.09); --border-mid:rgba(10,10,18,0.16);
+    --ink:#0a0a12; --ink-dim:rgba(10,10,18,0.75); --ink-faint:rgba(10,10,18,0.52);
+    --mint:#2563eb; --mint-rgb:37,99,235; --violet:#4f46e5;
+    --grad:linear-gradient(120deg,#4e96f5,#003fc6);
+    --on-accent:#ffffff; --nav-bg:rgba(248,248,245,0.78);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{font-size:16px;scroll-behavior:smooth;}
+  body{font-family:var(--body);background:var(--bg);color:var(--ink);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background-color 0.3s ease,color 0.3s ease;}
+  a{color:inherit;text-decoration:none;}
+  img,svg{display:block;max-width:100%;}
+  ::selection{background:var(--mint);color:var(--on-accent);}
+  section{scroll-margin-top:80px;}
+
+  .scroll-progress{position:fixed;top:0;left:0;height:2px;width:100%;background:var(--grad);z-index:300;transform:scaleX(0);transform-origin:left;transition:transform 0.1s linear;}
+  .nav{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--nav-bg);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);transition:background-color 0.3s ease,border-color 0.3s ease;}
+  .nav-inner{max-width:1240px;margin:0 auto;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+  .nav-logo{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:0;}
+  .nav-right{display:flex;align-items:center;gap:20px;}
+  .nav-links{display:flex;align-items:center;gap:28px;list-style:none;}
+  .nav-links a{font-family:var(--mono);font-size:11.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-dim);transition:color 0.2s;position:relative;}
+  .nav-links a:hover{color:var(--ink);}
+  .nav-clock{font-family:var(--mono);font-size:10.5px;letter-spacing:0.05em;color:var(--ink-faint);}
+  .nav-clock span{color:var(--mint);}
+  .clock-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--mint);vertical-align:1px;margin-right:2px;}
+  .theme-toggle{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-mid);border-radius:50%;background:none;cursor:pointer;color:var(--ink-dim);transition:border-color 0.2s,color 0.2s;}
+  .theme-toggle:hover{border-color:var(--mint);color:var(--mint);}
+  .theme-toggle svg{width:15px;height:15px;}
+  .theme-toggle .icon-moon{display:none;}
+  [data-theme="light"] .theme-toggle .icon-sun{display:none;}
+  [data-theme="light"] .theme-toggle .icon-moon{display:block;}
+  .nav-hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px;}
+  .nav-hamburger span{display:block;width:22px;height:1.5px;background:var(--ink);transition:transform 0.2s,opacity 0.2s;}
+  .nav-hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
+  .nav-hamburger.open span:nth-child(2){opacity:0;}
+  .nav-hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
+  .mobile-menu{display:none;position:fixed;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border-mid);padding:20px 28px 28px;z-index:199;flex-direction:column;gap:2px;}
+  .mobile-menu.open{display:flex;}
+  .mobile-menu a{font-family:var(--mono);font-size:14px;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink);padding:14px 0;border-bottom:1px solid var(--border);}
+  .mobile-menu a:last-child{border:none;}
+
+  .case-hero{max-width:1240px;margin:0 auto;padding:140px 40px 80px;min-height:94vh;display:grid;align-items:end;position:relative;}
+  .case-hero::before{content:'AGENTRAIL';position:absolute;top:92px;left:32px;font-family:var(--display);font-size:152px;font-weight:800;letter-spacing:0;line-height:0.86;color:transparent;-webkit-text-stroke:1px rgba(245,245,247,0.055);pointer-events:none;white-space:nowrap;}
+  [data-theme="light"] .case-hero::before{-webkit-text-stroke:1px rgba(10,10,18,0.07);}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,0.92fr) minmax(360px,1.08fr);gap:54px;align-items:end;position:relative;z-index:1;width:100%;}
+  .eyebrow{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mint);margin-bottom:24px;}
+  .eyebrow::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 12px var(--mint);}
+  h1{font-family:var(--display);font-size:88px;line-height:0.95;font-weight:700;letter-spacing:0;margin-bottom:30px;}
+  .accent{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hero-copy{font-size:18px;line-height:1.75;color:var(--ink-dim);max-width:58ch;margin-bottom:34px;}
+  .hero-actions{display:flex;gap:14px;flex-wrap:wrap;}
+  .btn-primary,.btn-ghost{font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 22px;display:inline-flex;align-items:center;gap:10px;transition:transform 0.18s,border-color 0.18s,background 0.18s,color 0.18s;}
+  .btn-primary{background:var(--mint);color:var(--on-accent);border:1px solid var(--mint);}
+  .btn-ghost{border:1px solid var(--border-mid);color:var(--ink);}
+  .btn-primary:hover,.btn-ghost:hover{transform:translateY(-2px);}
+  .btn-ghost:hover{border-color:var(--mint);color:var(--mint);}
+  .hero-visual{border:1px solid var(--border-mid);background:var(--surface);border-radius:10px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.42);}
+  .hero-visual img{width:100%;height:auto;object-fit:cover;}
+  .visual-caption{display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--border);padding:14px 16px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.04em;color:var(--ink-faint);text-transform:uppercase;}
+  .meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:54px;}
+  .meta-item{background:var(--bg);padding:22px;}
+  .meta-label{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px;}
+  .meta-value{font-size:15px;color:var(--ink);line-height:1.45;}
+
+  .section{max-width:1240px;margin:0 auto;padding:110px 40px;position:relative;z-index:2;overflow:hidden;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin-bottom:58px;flex-wrap:wrap;}
+  .section-num{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mint);}
+  .section-title{font-family:var(--display);font-weight:700;font-size:54px;letter-spacing:0;margin-top:12px;}
+  .section-note{font-family:var(--mono);font-size:11px;letter-spacing:0.04em;color:var(--ink-faint);max-width:34ch;text-align:right;}
+  .intro-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:48px;align-items:start;}
+  .lead{font-family:var(--display);font-size:42px;line-height:1.08;letter-spacing:0;font-weight:600;}
+  .body-copy{display:grid;gap:18px;color:var(--ink-dim);font-size:16px;line-height:1.75;}
+  .stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:48px;}
+  .stat{background:var(--bg);padding:34px;}
+  .stat-value{font-family:var(--display);font-size:48px;line-height:1;font-weight:700;letter-spacing:0;color:var(--mint);margin-bottom:12px;}
+  .stat-label{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-faint);}
+
+  .architecture{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border:1px solid var(--border);}
+  .arch-card{background:var(--bg);padding:30px;min-height:230px;display:flex;flex-direction:column;justify-content:space-between;transition:background 0.25s;}
+  .arch-card:hover{background:var(--surface);}
+  .arch-step{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mint);margin-bottom:18px;}
+  .arch-title{font-family:var(--display);font-size:23px;line-height:1.05;letter-spacing:0;font-weight:600;margin-bottom:12px;}
+  .arch-copy{font-size:14.5px;line-height:1.65;color:var(--ink-dim);}
+  .arch-card:nth-child(1),.arch-card:nth-child(2){grid-column:span 3;}
+  .arch-card:nth-child(3),.arch-card:nth-child(4),.arch-card:nth-child(5),.arch-card:nth-child(6){grid-column:span 3;}
+
+  .feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);}
+  .feature{background:var(--bg);padding:36px;display:grid;gap:22px;align-content:start;}
+  .feature img{border:1px solid var(--border);border-radius:8px;width:100%;aspect-ratio:1.55/1;object-fit:cover;background:var(--surface);}
+  .feature-kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mint);}
+  .feature h3{font-family:var(--display);font-size:32px;line-height:1.08;letter-spacing:0;}
+  .feature p{color:var(--ink-dim);font-size:15.5px;line-height:1.7;}
+  .user-flow-grid{grid-template-columns:1fr;}
+  .flow-feature{grid-template-columns:minmax(0,1.35fr) minmax(280px,0.65fr);align-items:center;}
+  .flow-feature img{aspect-ratio:2.35/1;object-position:top left;}
+
+  .detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);}
+  .detail-card{background:var(--bg);padding:34px;}
+  .detail-card h3{font-family:var(--display);font-size:25px;line-height:1.1;letter-spacing:0;margin-bottom:16px;}
+  .detail-card ul{list-style:none;display:grid;gap:11px;}
+  .detail-card li{position:relative;padding-left:18px;color:var(--ink-dim);font-size:14.5px;line-height:1.65;}
+  .detail-card li::before{content:'';position:absolute;left:0;top:11px;width:6px;height:1px;background:var(--mint);}
+
+  .workflow{border:1px solid var(--border);padding:42px;background:var(--surface);}
+  .workflow-line{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;align-items:stretch;}
+  .flow-step{border:1px solid var(--border-mid);padding:20px;background:var(--bg);min-height:150px;position:relative;}
+  .flow-step::after{content:'';position:absolute;top:50%;right:-19px;width:18px;height:1px;background:var(--border-mid);}
+  .flow-step:last-child::after{display:none;}
+  .flow-num{font-family:var(--mono);font-size:10px;color:var(--mint);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;}
+  .flow-title{font-family:var(--display);font-size:21px;line-height:1.05;letter-spacing:0;margin-bottom:10px;}
+  .flow-copy{font-size:13.5px;line-height:1.6;color:var(--ink-dim);}
+
+  .reflection{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);}
+  .reflection-panel{background:var(--bg);padding:42px;}
+  .reflection-panel h3{font-family:var(--display);font-size:32px;letter-spacing:0;margin-bottom:18px;}
+  .reflection-panel p{color:var(--ink-dim);font-size:15.5px;line-height:1.75;}
+  .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;}
+  .tag{font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-dim);padding:5px 11px;border:1px solid var(--border);border-radius:2px;}
+
+  .next-project{padding:96px 40px 116px;text-align:center;max-width:1000px;margin:0 auto;}
+  .next-project h2{font-family:var(--display);font-size:72px;line-height:0.98;letter-spacing:0;margin-bottom:28px;}
+  .next-project p{color:var(--ink-dim);font-size:17px;max-width:52ch;margin:0 auto 34px;}
+
+  footer{border-top:1px solid var(--border);padding:36px 0;position:relative;z-index:2;}
+  .footer-inner{max-width:1240px;margin:0 auto;padding:0 40px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .footer-copy{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);letter-spacing:0.04em;}
+  .footer-links{display:flex;gap:24px;list-style:none;}
+  .footer-links a{font-family:var(--mono);font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-faint);transition:color 0.2s;}
+  .footer-links a:hover{color:var(--mint);}
+
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity 0.6s ease-out,transform 0.6s ease-out;}
+  .reveal.in{opacity:1;transform:none;}
+  @media (max-width:1100px){
+    .hero-grid,.intro-grid{grid-template-columns:1fr;}
+    .meta-grid{grid-template-columns:repeat(2,1fr);}
+    .architecture{grid-template-columns:1fr 1fr;}
+    .arch-card,.arch-card:nth-child(1),.arch-card:nth-child(2),.arch-card:nth-child(3),.arch-card:nth-child(4),.arch-card:nth-child(5),.arch-card:nth-child(6){grid-column:auto;}
+    .workflow-line{grid-template-columns:1fr 1fr;}
+    .flow-step::after{display:none;}
+  }
+  @media (max-width:768px){
+    .nav-inner{padding:0 24px;}
+    .nav-links{display:none;}
+    .nav-hamburger{display:flex;}
+    .nav-clock{display:none;}
+    .case-hero{padding:112px 24px 60px;min-height:auto;}
+    .case-hero::before{display:none;}
+    h1{font-size:52px;}
+    .hero-copy{font-size:16px;}
+    .section-title{font-size:38px;}
+    .lead{font-size:30px;}
+    .stat-value{font-size:40px;}
+    .feature h3{font-size:27px;}
+    .next-project h2{font-size:46px;}
+    .hero-grid{gap:34px;}
+    .hero-visual{border-radius:8px;}
+    .meta-grid,.stat-strip,.feature-grid,.detail-grid,.reflection,.workflow-line,.architecture{grid-template-columns:1fr;}
+    .flow-feature{grid-template-columns:1fr;}
+    .section{padding:82px 24px;}
+    .section-note{text-align:left;}
+    .workflow{padding:24px;}
+    .next-project{padding:76px 24px 92px;}
+    .footer-inner{flex-direction:column;text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">M Ahmed Silat</a>
+    <div class="nav-right">
+      <ul class="nav-links">
+        <li><a href="index.html#projects">Projects</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#product">Product</a></li>
+        <li><a href="#technical">Technical</a></li>
+        <li class="nav-clock" id="navClock"><span class="clock-dot"></span> Dubai --:--</li>
+      </ul>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg>
+      </button>
+      <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html#projects">Projects</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#product">Product</a>
+  <a href="#technical">Technical</a>
+  <a href="index.html#contact">Contact</a>
+</div>
+
+<header class="case-hero">
+  <div class="hero-grid">
+    <div>
+      <p class="eyebrow">Case study</p>
+      <h1>AgenTrail<br><span class="accent">AI trip planner.</span></h1>
+      <p class="hero-copy">An end-to-end agentic travel planning system that turns fresh city data, user constraints, ML ranking, and LLM reasoning into personalized itineraries with visible streaming logs.</p>
+      <div class="hero-actions">
+        <a href="#architecture" class="btn-primary">View architecture</a>
+        <a href="#product" class="btn-ghost">See product flow</a>
+      </div>
+    </div>
+    <figure class="hero-visual reveal">
+      <img src="assets/agentrail/explorer-desktop.png" alt="AgenTrail city explorer interface">
+      <figcaption class="visual-caption"><span>React explorer view</span><span>AgenTrail</span></figcaption>
+    </figure>
+  </div>
+  <div class="meta-grid reveal">
+    <div class="meta-item"><p class="meta-label">Role</p><p class="meta-value">Full-stack AI engineer, system designer, product builder</p></div>
+    <div class="meta-item"><p class="meta-label">Timeline</p><p class="meta-value">Sep 2025 to May 2026</p></div>
+    <div class="meta-item"><p class="meta-label">Stack</p><p class="meta-value">Python, FastAPI, React, Vite, Gemini, Playwright, SQLite</p></div>
+    <div class="meta-item"><p class="meta-label">Focus</p><p class="meta-value">Agents, data freshness, ranking, itinerary generation</p></div>
+  </div>
+</header>
+
+<main>
+  <section class="section" id="overview">
+    <div class="section-head">
+      <div><span class="section-num">01 Overview</span><h2 class="section-title">Built as a full system.</h2></div>
+      <p class="section-note">Not a prompt wrapper. The project joins data collection, ML scoring, agent planning, and a user-facing app.</p>
+    </div>
+    <div class="intro-grid reveal">
+      <p class="lead">AgenTrail solves trip planning as a data and orchestration problem, not just a chat interface.</p>
+      <div class="body-copy">
+        <p>The product lets a traveler choose a city, budget, family size, interests, schedule, and model preferences. Behind the UI, the backend validates the request, checks whether city data is stale, refreshes data when needed, ranks attractions, and streams the planner's reasoning back to the browser.</p>
+        <p>I built the system around a pipeline: a Playwright web agent discovers attractions, an enrichment agent normalizes records, ML models score candidates, and a planner agent assembles an itinerary using database search, AutoML scores, and Google Maps travel-time tools.</p>
+      </div>
+    </div>
+    <div class="stat-strip reveal">
+      <div class="stat"><p class="stat-value">9</p><p class="stat-label">City datasets prepared</p></div>
+      <div class="stat"><p class="stat-value">2</p><p class="stat-label">Ranking models compared</p></div>
+      <div class="stat"><p class="stat-value">SSE</p><p class="stat-label">Live planner log streaming</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="architecture">
+    <div class="section-head">
+      <div><span class="section-num">02 Architecture</span><h2 class="section-title">Agent pipeline.</h2></div>
+      <p class="section-note">Each layer has a narrow job, which keeps the itinerary output explainable and debuggable.</p>
+    </div>
+    <div class="architecture reveal">
+      <article class="arch-card">
+        <div><p class="arch-step">Step 01</p><h3 class="arch-title">Web agent scraper</h3><p class="arch-copy">Gemini plans browser actions over a simplified DOM and screenshot loop, then Playwright executes clicks, scrolls, waits, and extraction steps.</p></div>
+        <div class="tag-row"><span class="tag">Gemini</span><span class="tag">Playwright</span></div>
+      </article>
+      <article class="arch-card">
+        <div><p class="arch-step">Step 02</p><h3 class="arch-title">Data enrichment</h3><p class="arch-copy">Raw attraction rows are normalized into canonical categories, price tiers, descriptions, coordinates, and structured fields validated by Pydantic models.</p></div>
+        <div class="tag-row"><span class="tag">Pydantic</span><span class="tag">SQLite</span></div>
+      </article>
+      <article class="arch-card">
+        <div><p class="arch-step">Step 03</p><h3 class="arch-title">ML ranking</h3><p class="arch-copy">Feature engineering produces user-attraction pairs for Random Forest and XGBoost style ranking experiments, letting the planner compare primary and alternative itineraries.</p></div>
+        <div class="tag-row"><span class="tag">scikit-learn</span><span class="tag">Optuna</span></div>
+      </article>
+      <article class="arch-card">
+        <div><p class="arch-step">Step 04</p><h3 class="arch-title">Planner agent</h3><p class="arch-copy">The agent uses tools for database search, model scores, and travel times, then produces a day-by-day itinerary based on budget, tags, family ages, and start time.</p></div>
+        <div class="tag-row"><span class="tag">Tools</span><span class="tag">Maps API</span></div>
+      </article>
+      <article class="arch-card">
+        <div><p class="arch-step">Step 05</p><h3 class="arch-title">FastAPI stream</h3><p class="arch-copy">The backend validates strict request fields and streams live log events plus final JSON results through the `/plan/stream` endpoint.</p></div>
+        <div class="tag-row"><span class="tag">FastAPI</span><span class="tag">SSE</span></div>
+      </article>
+      <article class="arch-card">
+        <div><p class="arch-step">Step 06</p><h3 class="arch-title">React interface</h3><p class="arch-copy">A Vite app presents city discovery, trip configuration, generated itineraries, diagnostics, and interactive map context.</p></div>
+        <div class="tag-row"><span class="tag">React</span><span class="tag">Vite</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="product">
+    <div class="section-head">
+      <div><span class="section-num">03 Product</span><h2 class="section-title">The user flow.</h2></div>
+      <p class="section-note">Actual screens from the working app: city discovery, generated itineraries, map-backed review controls, and diagnostics telemetry.</p>
+    </div>
+    <div class="feature-grid user-flow-grid reveal">
+      <article class="feature flow-feature">
+        <img src="assets/agentrail/screenshots/explorer-page.png" alt="AgenTrail explorer page with destination cards for Dubai, Tokyo, and London">
+        <div>
+          <p class="feature-kicker">Step 01 / Explorer</p>
+          <h3>Choose a city from the visual destination grid.</h3>
+          <p>The first screen lets travelers browse supported cities and start with a clear destination choice. Selecting Dubai, Tokyo, London, or another card carries the city into the planner configuration flow.</p>
+        </div>
+      </article>
+      <article class="feature flow-feature">
+        <img src="assets/agentrail/screenshots/dubai-itinerary-map.png" alt="AgenTrail Dubai itinerary with ranked stops and Google map route">
+        <div>
+          <p class="feature-kicker">Step 02 / Itinerary</p>
+          <h3>Review a ranked day plan beside the route map.</h3>
+          <p>The generated Dubai itinerary shows model-ranked stops, prices, ratings, schedule timing, export controls, and a Google map route so the plan is inspectable instead of just text output.</p>
+        </div>
+      </article>
+      <article class="feature flow-feature">
+        <img src="assets/agentrail/screenshots/tokyo-save-reject-map.png" alt="AgenTrail Tokyo itinerary with save and reject controls and route map">
+        <div>
+          <p class="feature-kicker">Step 03 / Feedback</p>
+          <h3>Let users accept or reject recommendations.</h3>
+          <p>The Tokyo flow adds preference actions directly to itinerary cards. Travelers can save or reject stops while still seeing the route context, making the planner easier to refine over time.</p>
+        </div>
+      </article>
+      <article class="feature flow-feature">
+        <img src="assets/agentrail/screenshots/diagnostics-page.png" alt="AgenTrail diagnostics dashboard with telemetry cards and system logs">
+        <div>
+          <p class="feature-kicker">Step 04 / Diagnostics</p>
+          <h3>Surface system telemetry and execution logs.</h3>
+          <p>The diagnostics page exposes neural load, precision accuracy, active core nodes, token extraction, service status, and runtime logs so long-running agent work is easier to monitor and debug.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="technical">
+    <div class="section-head">
+      <div><span class="section-num">04 Technical</span><h2 class="section-title">Important decisions.</h2></div>
+      <p class="section-note">The hard parts were reliability, data quality, and making agent behavior visible.</p>
+    </div>
+    <div class="detail-grid reveal">
+      <article class="detail-card">
+        <h3>Fresh data path</h3>
+        <ul>
+          <li>Per-city SQLite databases let the backend check freshness city by city.</li>
+          <li>The scraper can be forced from the planning request for stale or missing data.</li>
+          <li>Raw data is stored separately from enriched attraction records.</li>
+        </ul>
+      </article>
+      <article class="detail-card">
+        <h3>Agent guardrails</h3>
+        <ul>
+          <li>Browser observations use simplified DOM state to reduce token noise.</li>
+          <li>A critic pass catches repeated or risky browser actions before execution.</li>
+          <li>Pydantic models validate planner requests and enriched attraction payloads.</li>
+        </ul>
+      </article>
+      <article class="detail-card">
+        <h3>Planner quality</h3>
+        <ul>
+          <li>AutoML scores help rank attractions against user preferences.</li>
+          <li>Primary and alternative model outputs can be compared in one request.</li>
+          <li>Maps travel-time tools add practical routing context to itinerary choices.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="workflow">
+    <div class="section-head">
+      <div><span class="section-num">05 Workflow</span><h2 class="section-title">From request to plan.</h2></div>
+    </div>
+    <div class="workflow reveal">
+      <div class="workflow-line">
+        <div class="flow-step"><p class="flow-num">Input</p><h3 class="flow-title">Traveler constraints</h3><p class="flow-copy">City, budget, days, family profile, tags, timing, and model options.</p></div>
+        <div class="flow-step"><p class="flow-num">Data</p><h3 class="flow-title">Freshness check</h3><p class="flow-copy">Backend checks whether city data exists or needs refresh before planning.</p></div>
+        <div class="flow-step"><p class="flow-num">Rank</p><h3 class="flow-title">Candidate scoring</h3><p class="flow-copy">Attractions are retrieved and scored using trained model artifacts.</p></div>
+        <div class="flow-step"><p class="flow-num">Plan</p><h3 class="flow-title">Agent synthesis</h3><p class="flow-copy">Planner agent combines scores, metadata, travel times, and constraints.</p></div>
+        <div class="flow-step"><p class="flow-num">Output</p><h3 class="flow-title">Live itinerary</h3><p class="flow-copy">SSE sends logs during execution and a final structured JSON result.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="reflection">
+    <div class="section-head">
+      <div><span class="section-num">06 Reflection</span><h2 class="section-title">What this proves.</h2></div>
+    </div>
+    <div class="reflection reveal">
+      <article class="reflection-panel">
+        <h3>System thinking</h3>
+        <p>AgenTrail demonstrates the kind of AI application work I care about: useful interfaces backed by concrete data pipelines, validation layers, model evaluation, and operational visibility. The challenge was making every layer work together without turning the product into a brittle demo.</p>
+      </article>
+      <article class="reflection-panel">
+        <h3>Next improvements</h3>
+        <p>The next version would add persistent user accounts, saved trips, richer route optimization, stronger evaluation datasets for ranking quality, and admin controls for reviewing scraped attraction records before they reach production planning.</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<section class="next-project">
+  <h2>Back to the<br><span class="accent">portfolio.</span></h2>
+  <p>AgenTrail sits alongside my broader work in full-stack AI systems, backend APIs, automation, and data products.</p>
+  <a href="index.html#projects" class="btn-primary">View all projects</a>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <p class="footer-copy">&copy; 2026 Ahmed Silat &middot; Dubai, UAE</p>
+    <ul class="footer-links">
+      <li><a href="https://github.com/mahmedsilatedu" target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href="https://linkedin.com/in/mahmedsilat" target="_blank" rel="noopener">LinkedIn</a></li>
+      <li><a href="mailto:mahmedsilat@gmail.com">Email</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+(function() {
+  function setupTheme() {
+    const btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+  }
+  function setupHamburger() {
+    const h = document.getElementById('hamburger');
+    const m = document.getElementById('mobileMenu');
+    if (!h || !m) return;
+    h.addEventListener('click', () => {
+      const open = m.classList.toggle('open');
+      h.classList.toggle('open', open);
+      h.setAttribute('aria-expanded', open);
+    });
+    m.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      m.classList.remove('open'); h.classList.remove('open');
+    }));
+  }
+  function setupReveal() {
+    const obs = new IntersectionObserver(es => {
+      es.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  }
+  function setupScrollProgress() {
+    const bar = document.getElementById('scrollProgress');
+    if (!bar) return;
+    window.addEventListener('scroll', () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      const pct = max > 0 ? window.scrollY / max : 0;
+      bar.style.transform = `scaleX(${pct})`;
+    });
+  }
+  function setupClock() {
+    const el = document.getElementById('navClock');
+    if (!el) return;
+    function update() {
+      const now = new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Dubai', hour: '2-digit', minute: '2-digit' });
+      el.innerHTML = `<span class="clock-dot"></span> Dubai ${now}`;
+    }
+    update();
+    setInterval(update, 30000);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    setupTheme();
+    setupHamburger();
+    setupReveal();
+    setupScrollProgress();
+    setupClock();
+  });
+})();
+</script>
+</body>
+</html>
+
+
+
