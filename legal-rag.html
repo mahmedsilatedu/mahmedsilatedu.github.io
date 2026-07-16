@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Regulations RAG — Legal AI Case Study · Silat Technologies</title>
+<meta name="description" content="A technical case study of a world-regulations RAG system built with Python and the Claude API for jurisdiction-aware regulatory research, grounded answers, and source-level citations.">
+<link rel="canonical" href="https://mahmedsilatedu.github.io/legal-rag">
+<meta property="og:type" content="website">
+<meta property="og:title" content="World Regulations RAG — Legal AI Case Study">
+<meta property="og:description" content="How Ahmed Silat built a citation-first regulatory intelligence system with Python, hybrid retrieval, and the Claude API.">
+<meta property="og:url" content="https://mahmedsilatedu.github.io/legal-rag">
+<link rel="icon" type="image/svg+xml" href="silat-icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f8f8f5;--surface:#fff;--surface-2:#f1f1ee;
+    --border:rgba(10,10,18,.09);--border-mid:rgba(10,10,18,.17);
+    --ink:#0a0a12;--ink-dim:rgba(10,10,18,.72);--ink-faint:rgba(10,10,18,.48);
+    --blue:#1a3a8a;--blue-mid:#2563eb;--blue-light:#dbeafe;--deep:#0d2463;
+    --nav-bg:rgba(248,248,245,.9);--on-accent:#fff;
+    --display:'Syne',system-ui,sans-serif;--body:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px;scroll-behavior:smooth}
+  body{font-family:var(--body);background:var(--bg);color:var(--ink);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}button{font:inherit}svg{display:block;max-width:100%}
+  ::selection{background:var(--blue-mid);color:#fff}section{scroll-margin-top:74px}
+  .skip-link{position:fixed;left:16px;top:-80px;z-index:999;background:var(--ink);color:var(--bg);padding:10px 16px;font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.08em}
+  .skip-link:focus{top:12px}
+  .scroll-progress{position:fixed;inset:0 auto auto 0;width:100%;height:2px;background:var(--blue-mid);z-index:300;transform:scaleX(0);transform-origin:left}
+
+  .nav{position:fixed;inset:0 0 auto;z-index:200;background:var(--nav-bg);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+  .nav-inner{max-width:1240px;height:64px;margin:auto;padding:0 40px;display:flex;align-items:center;justify-content:space-between}
+  .nav-logo,.footer-logo{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:16px}
+  .nav-logo-word>span,.footer-logo>span{font-weight:400;color:var(--ink-dim)}
+  .nav-links{display:flex;align-items:center;gap:28px;list-style:none;margin-left:auto}
+  .nav-links a{font:500 11.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);transition:color .2s}
+  .nav-links a:hover,.nav-links a:focus-visible{color:var(--blue-mid)}
+  .nav-cta{background:var(--ink);color:var(--bg)!important;padding:10px 18px}
+  .nav-hamburger{display:none;flex-direction:column;gap:5px;border:0;background:none;cursor:pointer;padding:5px;color:var(--ink)}
+  .nav-hamburger span{display:block;width:22px;height:1.5px;background:currentColor;transition:.2s}
+  .nav-hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+  .nav-hamburger.open span:nth-child(2){opacity:0}.nav-hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+  .mobile-menu{display:none;position:fixed;top:64px;left:0;right:0;z-index:199;background:var(--bg);border-bottom:1px solid var(--border-mid);padding:20px 28px 28px;flex-direction:column}
+  .mobile-menu.open{display:flex}.mobile-menu a{padding:14px 0;border-bottom:1px solid var(--border);font:500 14px var(--mono);letter-spacing:.04em;text-transform:uppercase}
+  .mobile-menu a:last-child{border:0}.mobile-cta{background:var(--ink);color:var(--bg)!important;text-align:center;margin-top:10px;padding:14px!important}
+
+  .case-hero{max-width:1240px;min-height:94vh;margin:auto;padding:138px 40px 72px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden}
+  .case-hero::before{content:'REGULATIONS';position:absolute;top:100px;left:28px;font:800 clamp(90px,11vw,160px)/.8 var(--display);letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1px rgba(10,10,18,.06);pointer-events:none;white-space:nowrap}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(64px,6vw,88px);align-items:center;position:relative;z-index:1;transition:grid-template-columns .28s ease}
+  .hero-grid.window-minimized{grid-template-columns:minmax(0,1fr)}
+  .eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:22px;font:500 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--blue-mid)}
+  .eyebrow::before{content:'';width:8px;height:8px;background:var(--blue-mid);border-radius:50%;box-shadow:0 0 0 5px rgba(37,99,235,.09)}
+  h1{max-width:100%;font:700 clamp(56px,5.35vw,82px)/.93 var(--display);letter-spacing:-.045em;margin-bottom:28px}
+  .accent{color:var(--blue-mid)}
+  .hero-copy{max-width:57ch;margin-bottom:32px;color:var(--ink-dim);font-size:18px;line-height:1.72}
+  .hero-actions{display:flex;flex-wrap:wrap;gap:12px}
+  .btn-primary,.btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 22px;font:500 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;border:1px solid;transition:transform .18s,border-color .18s,color .18s,background .18s}
+  .btn-primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}.btn-ghost{border-color:var(--border-mid);color:var(--ink)}
+  .btn-primary:hover,.btn-ghost:hover{transform:translateY(-2px)}.btn-ghost:hover{border-color:var(--blue-mid);color:var(--blue-mid)}
+
+  .rag-console{width:100%;background:var(--surface);border:1px solid var(--border-mid);box-shadow:0 26px 70px rgba(13,36,99,.14);border-radius:9px;overflow:hidden;transition:width .28s ease,box-shadow .28s ease}
+  .rag-console.is-minimized{position:fixed;top:88px;right:24px;z-index:190;width:min(340px,calc(100vw - 48px));box-shadow:0 14px 40px rgba(13,36,99,.2)}
+  .rag-console.is-minimized .console-top{border-bottom:0}
+  .console-body[hidden]{display:none}
+  .console-top{height:42px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--surface-2)}
+  .console-dots{display:flex;align-items:center;gap:3px}.console-dot{display:block;width:7px;height:7px;border-radius:50%;background:var(--border-mid)}.console-dots>.console-dot:first-child{background:var(--blue-mid)}
+  .console-control{width:16px;height:24px;display:grid;place-items:center;padding:0;border:0;background:transparent;cursor:pointer}
+  .console-control .console-dot{width:12px;height:12px;position:relative;background:var(--blue-mid);transition:transform .16s ease,background .16s ease}
+  .console-control .console-dot::after{content:'';position:absolute;left:3px;right:3px;top:5.5px;height:1px;border-radius:1px;background:#fff}
+  .console-control:hover .console-dot,.console-control:focus-visible .console-dot{background:var(--blue);transform:scale(1.08)}
+  .console-control:focus-visible{outline:1px solid var(--blue-mid);outline-offset:1px;border-radius:3px}
+  .console-id{margin-left:auto;font:500 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+  .console-title-min{display:none}.rag-console.is-minimized .console-title-full{display:none}.rag-console.is-minimized .console-title-min{display:inline}.rag-console.is-minimized .console-id{margin-left:8px;margin-right:auto}
+  .console-restore{display:none;align-items:center;padding:5px 8px;border:1px solid var(--border-mid);background:transparent;color:var(--ink-dim);font:500 8px var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+  .console-restore:hover,.console-restore:focus-visible{border-color:var(--blue-mid);color:var(--blue-mid);outline:none}.rag-console.is-minimized .console-restore{display:inline-flex}
+  .query-block{padding:20px;border-bottom:1px solid var(--border)}
+  .query-label,.mini-label{font:500 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}
+  .query{font-size:15px;line-height:1.55;font-weight:500;max-width:48ch}
+  .query-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .chip{padding:4px 8px;border:1px solid var(--border);background:var(--bg);border-radius:2px;font:500 9px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-dim)}
+  .chip.live{color:var(--blue-mid);border-color:rgba(37,99,235,.28);background:rgba(37,99,235,.06)}
+  .console-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 20px;gap:24px}
+  .console-tab{border:0;border-bottom:2px solid transparent;background:none;padding:12px 0 10px;color:var(--ink-faint);font:500 9px var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+  .console-tab.active{color:var(--blue-mid);border-color:var(--blue-mid)}
+  .console-panel{display:none;padding:18px 20px 20px;min-height:268px}.console-panel.active{display:block}
+  .answer-lead{font-size:13.5px;line-height:1.65;margin-bottom:13px}.answer-list{display:grid;gap:9px;list-style:none}
+  .answer-list li{font-size:12.5px;line-height:1.55;color:var(--ink-dim);padding-left:17px;position:relative}.answer-list li::before{content:'↳';position:absolute;left:0;color:var(--blue-mid)}
+  .cite{font:500 9px var(--mono);color:var(--blue-mid);white-space:nowrap}
+  .sources{display:grid;gap:8px}.source-row{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--border);background:var(--bg)}
+  .source-jur{font:500 9px var(--mono);color:var(--blue-mid);letter-spacing:.08em}.source-title{font-size:11.5px;line-height:1.35}.source-score{font:500 9px var(--mono);color:var(--ink-faint)}
+  .audit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.audit-cell{border:1px solid var(--border);padding:11px;background:var(--bg)}
+  .audit-state{font:600 12px var(--body);margin-top:2px}.audit-state.ok{color:var(--blue-mid)}
+  .console-status{display:flex;justify-content:space-between;gap:12px;padding:11px 20px;border-top:1px solid var(--border);font:500 9px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+  .status-live{color:var(--blue-mid)}
+  .meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:54px;position:relative;z-index:1}
+  .meta-item{background:var(--bg);padding:21px}.meta-label{font:500 9.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}.meta-value{font-size:14.5px;line-height:1.45}
+
+  .section{max-width:1240px;margin:auto;padding:108px 40px;position:relative}
+  .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-bottom:54px}
+  .section-num{font:500 10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--blue-mid)}
+  .section-title{font:700 clamp(40px,4vw,56px)/1 var(--display);letter-spacing:-.035em;margin-top:10px}
+  .section-note{font:400 11px/1.55 var(--mono);letter-spacing:.02em;color:var(--ink-faint);max-width:38ch;text-align:right}
+  .intro-grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:54px;align-items:start}
+  .lead{font:600 clamp(31px,3vw,43px)/1.08 var(--display);letter-spacing:-.03em}
+  .body-copy{display:grid;gap:18px;color:var(--ink-dim);font-size:16px;line-height:1.78}
+  .body-copy strong{color:var(--ink);font-weight:600}
+  .signal-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:48px}
+  .signal{background:var(--bg);padding:31px}.signal-mark{font:700 35px/1 var(--display);color:var(--blue-mid);margin-bottom:13px}.signal h3{font:600 16px var(--display);margin-bottom:7px}.signal p{font-size:13.5px;line-height:1.6;color:var(--ink-dim)}
+
+  .architecture-shell{border:1px solid var(--border);background:var(--surface)}
+  .arch-header{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:16px 20px;border-bottom:1px solid var(--border)}
+  .arch-header p{font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+  .arch-live{display:flex;align-items:center;gap:7px;color:var(--blue-mid)!important}.arch-live::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+  .pipeline{display:grid;grid-template-columns:repeat(6,1fr)}
+  .pipe-step{min-height:278px;padding:25px 22px;border-right:1px solid var(--border);display:flex;flex-direction:column;position:relative;background:var(--bg);transition:background .2s}
+  .pipe-step:last-child{border:0}.pipe-step:hover{background:var(--surface)}
+  .pipe-step::after{content:'→';position:absolute;right:-10px;top:46px;z-index:2;width:19px;height:19px;display:grid;place-items:center;border:1px solid var(--border);background:var(--surface);color:var(--blue-mid);font:500 10px var(--mono);border-radius:50%}
+  .pipe-step:last-child::after{display:none}.pipe-num{font:500 9px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--blue-mid);margin-bottom:27px}
+  .pipe-icon{width:30px;height:30px;margin-bottom:18px;color:var(--blue-mid)}.pipe-icon svg{width:100%;height:100%}
+  .pipe-step h3{font:600 20px/1.1 var(--display);letter-spacing:-.02em;margin-bottom:11px}.pipe-step p{font-size:12.5px;line-height:1.58;color:var(--ink-dim)}
+  .pipe-tech{margin-top:auto;padding-top:18px;font:500 8.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+  .arch-caption{display:grid;grid-template-columns:1.1fr .9fr;gap:1px;background:var(--border);border-top:1px solid var(--border)}
+  .caption-block{padding:24px;background:var(--surface-2)}.caption-block h3{font:600 18px var(--display);margin-bottom:7px}.caption-block p{font-size:13.5px;line-height:1.65;color:var(--ink-dim)}
+
+  .api-layout{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border)}
+  .code-window{background:#0a0d16;color:#e8ecf5;min-width:0}.code-head{height:46px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1)}
+  .code-head span{font:500 9.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.48)}
+  .copy-btn{border:1px solid rgba(255,255,255,.18);background:none;color:rgba(255,255,255,.66);padding:6px 9px;font:500 8.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+  .copy-btn:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+  pre{padding:26px;overflow:auto;font:400 12px/1.72 var(--mono);tab-size:2}.code-blue{color:#7aa2ff}.code-green{color:#8bd5ca}.code-dim{color:#697286}.code-white{color:#f5f7fb}
+  .api-decisions{background:var(--bg);padding:32px;display:grid;align-content:center;gap:0}
+  .decision{display:grid;grid-template-columns:36px 1fr;gap:14px;padding:19px 0;border-bottom:1px solid var(--border)}.decision:first-child{padding-top:0}.decision:last-child{border:0;padding-bottom:0}
+  .decision-num{font:500 10px var(--mono);color:var(--blue-mid);padding-top:3px}.decision h3{font:600 19px var(--display);margin-bottom:6px}.decision p{font-size:13.5px;line-height:1.62;color:var(--ink-dim)}
+
+  .retrieval-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:1px;background:var(--border);border:1px solid var(--border)}
+  .retrieval-story{padding:38px;background:var(--bg)}.retrieval-story h3{font:600 30px/1.08 var(--display);letter-spacing:-.025em;margin-bottom:15px}.retrieval-story>p{font-size:15px;line-height:1.72;color:var(--ink-dim);margin-bottom:25px}
+  .filter-list{list-style:none;display:grid;gap:0;border-top:1px solid var(--border)}.filter-list li{display:flex;justify-content:space-between;gap:20px;padding:13px 0;border-bottom:1px solid var(--border);font-size:12.5px;color:var(--ink-dim)}.filter-list span:first-child{font:500 9.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+  .rank-lab{padding:34px;background:var(--surface)}.rank-title{display:flex;justify-content:space-between;gap:16px;margin-bottom:23px}.rank-title h3{font:600 22px var(--display)}.rank-title span{font:500 9px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--blue-mid)}
+  .rank-list{display:grid;gap:9px}.rank-item{display:grid;grid-template-columns:28px 1fr 70px;gap:12px;align-items:center;padding:13px;border:1px solid var(--border);background:var(--bg)}
+  .rank-index{font:500 9px var(--mono);color:var(--blue-mid)}.rank-name{font-size:12.5px;line-height:1.35}.rank-meta{display:block;font:400 8.5px var(--mono);color:var(--ink-faint);margin-top:3px;text-transform:uppercase;letter-spacing:.04em}
+  .rank-score{height:4px;background:var(--surface-2);position:relative}.rank-score span{display:block;height:100%;background:var(--blue-mid)}
+  .rank-legend{display:flex;justify-content:space-between;gap:12px;margin-top:16px;font:400 8.5px var(--mono);color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em}
+
+  .trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
+  .trust-card{padding:31px 27px;background:var(--bg);min-height:235px}.trust-num{font:500 9px var(--mono);color:var(--blue-mid);letter-spacing:.09em;text-transform:uppercase;margin-bottom:30px}.trust-card h3{font:600 22px/1.08 var(--display);margin-bottom:12px}.trust-card p{font-size:13.5px;line-height:1.65;color:var(--ink-dim)}
+  .trust-rule{display:inline-flex;margin-top:20px;padding:5px 8px;border:1px solid rgba(37,99,235,.25);background:rgba(37,99,235,.05);color:var(--blue-mid);font:500 8.5px var(--mono);letter-spacing:.06em;text-transform:uppercase}
+
+  .eval-board{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border)}
+  .eval-panel{padding:38px;background:var(--bg)}.eval-panel h3{font:600 29px var(--display);letter-spacing:-.02em;margin-bottom:13px}.eval-panel>p{font-size:14.5px;line-height:1.7;color:var(--ink-dim);margin-bottom:25px}
+  .metric-list{display:grid;border-top:1px solid var(--border)}.metric{display:grid;grid-template-columns:1fr auto;gap:18px;padding:14px 0;border-bottom:1px solid var(--border);align-items:center}.metric-name{font-size:13px}.metric-type{font:500 8.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--blue-mid)}
+  .failure-list{display:grid;gap:8px}.failure{padding:14px;border:1px solid var(--border);background:var(--surface)}.failure-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:5px;font-size:12.5px;font-weight:600}.failure-status{font:500 8px var(--mono);text-transform:uppercase;color:var(--blue-mid);letter-spacing:.06em}.failure p{font-size:12px;line-height:1.52;color:var(--ink-dim)}
+
+  .stack-band{background:#0a0a12;color:#f8f8f5}.stack-inner{max-width:1240px;margin:auto;padding:96px 40px}.stack-band .section-num{color:#60a5fa}.stack-band .section-title{color:#fff}.stack-band .section-note{color:rgba(255,255,255,.48)}
+  .stack-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:60px;align-items:start}.stack-lead{font:600 clamp(32px,3.2vw,47px)/1.08 var(--display);letter-spacing:-.03em}.stack-lead span{color:#60a5fa}.stack-copy{color:rgba(255,255,255,.66);font-size:15px;line-height:1.75;margin-top:22px;max-width:58ch}
+  .stack-list{display:grid;grid-template-columns:1fr 1fr;border:1px solid rgba(255,255,255,.12)}.stack-item{padding:21px;border-right:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12)}.stack-item:nth-child(2n){border-right:0}.stack-item:nth-last-child(-n+2){border-bottom:0}
+  .stack-item span{display:block;font:500 8.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-bottom:7px}.stack-item strong{font:500 14px var(--body);color:#fff}
+
+  .next-project{padding:100px 24px 112px;text-align:center;background:var(--deep);color:#fff}.next-project h2{font:700 clamp(47px,6vw,76px)/.97 var(--display);letter-spacing:-.04em;margin-bottom:25px}.next-project .accent{color:#60a5fa}.next-project p{max-width:55ch;margin:0 auto 32px;color:rgba(255,255,255,.7);font-size:16px;line-height:1.7}.next-project .btn-primary{background:#fff;border-color:#fff;color:var(--deep)}
+  footer{border-top:1px solid var(--border);padding:36px 0}.footer-inner{max-width:1240px;margin:auto;padding:0 40px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}.footer-links{display:flex;gap:24px;list-style:none}.footer-links a,.footer-copy{font:400 10px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint)}.footer-links a:hover{color:var(--blue-mid)}
+
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .62s ease,transform .62s ease}.reveal.in{opacity:1;transform:none}
+  @media(max-width:1100px){
+    .hero-grid,.hero-grid.window-minimized,.intro-grid,.stack-grid{grid-template-columns:1fr}.hero-grid{gap:42px}.case-hero{min-height:auto}.pipeline{grid-template-columns:repeat(3,1fr)}.pipe-step{border-bottom:1px solid var(--border)}.pipe-step:nth-child(3){border-right:0}.pipe-step:nth-child(3)::after{display:none}.pipe-step:nth-child(n+4){border-bottom:0}.retrieval-grid{grid-template-columns:1fr}.trust-grid{grid-template-columns:1fr 1fr}.hero-visual{max-width:760px}
+  }
+  @media(max-width:800px){
+    .nav-inner{padding:0 24px}.nav-links{display:none}.nav-hamburger{display:flex}.case-hero{padding:112px 24px 60px}.case-hero::before{display:none}.hero-grid{grid-template-columns:1fr}.meta-grid{grid-template-columns:1fr 1fr}.section{padding:82px 24px}.section-head{align-items:flex-start;flex-direction:column}.section-note{text-align:left}.signal-strip{grid-template-columns:1fr}.pipeline{grid-template-columns:1fr 1fr}.pipe-step:nth-child(3){border-right:1px solid var(--border)}.pipe-step:nth-child(3)::after{display:grid}.pipe-step:nth-child(2n){border-right:0}.pipe-step:nth-child(2n)::after{display:none}.pipe-step:nth-child(n+4){border-bottom:1px solid var(--border)}.pipe-step:nth-last-child(-n+2){border-bottom:0}.arch-caption,.api-layout,.eval-board{grid-template-columns:1fr}.trust-grid{grid-template-columns:1fr 1fr}.stack-inner{padding:82px 24px}.footer-inner{padding:0 24px;flex-direction:column;text-align:center}
+  }
+  @media(max-width:520px){
+    .nav-inner{height:60px;padding:0 18px}.rag-console.is-minimized{top:76px;left:16px;right:16px;width:auto}.nav-logo{font-size:14px;gap:7px}.nav-logo svg{width:24px}.mobile-menu{top:60px;padding:16px 20px 22px}.case-hero{padding:96px 18px 48px}h1{font-size:clamp(45px,14vw,58px)}.hero-copy{font-size:15.5px;line-height:1.65}.hero-actions{display:grid}.hero-actions a{min-height:48px}.rag-console{border-radius:6px;box-shadow:0 18px 44px rgba(13,36,99,.13)}.query-block,.console-panel{padding:15px}.console-tabs{padding:0 15px;gap:17px}.query{font-size:13.5px}.console-panel{min-height:300px}.source-row{grid-template-columns:42px 1fr}.source-score{display:none}.audit-grid{grid-template-columns:1fr}.console-status{padding:10px 15px;font-size:7.5px}.meta-grid{grid-template-columns:1fr;margin-top:34px}.section{padding:68px 18px}.section-head{margin-bottom:36px}.section-title{font-size:36px}.lead{font-size:29px}.signal{padding:25px}.pipeline{grid-template-columns:1fr}.pipe-step{min-height:0;gap:0;border-right:0!important;border-bottom:1px solid var(--border)!important}.pipe-step:last-child{border-bottom:0!important}.pipe-step::after{display:none!important}.pipe-tech{margin-top:22px}.arch-caption{display:block}.caption-block+ .caption-block{border-top:1px solid var(--border)}.code-head{padding:0 14px}pre{padding:20px 14px;font-size:10.5px}.api-decisions,.retrieval-story,.rank-lab,.eval-panel{padding:26px 22px}.rank-item{grid-template-columns:23px 1fr 48px;padding:11px}.trust-grid{grid-template-columns:1fr}.trust-card{min-height:0;padding:26px}.trust-num{margin-bottom:20px}.stack-inner{padding:68px 18px}.stack-list{grid-template-columns:1fr}.stack-item{border-right:0!important;border-bottom:1px solid rgba(255,255,255,.12)!important}.stack-item:last-child{border-bottom:0!important}.next-project{padding:74px 18px 82px}.footer-inner{padding:0 18px}.footer-links{justify-content:center;flex-wrap:wrap;gap:12px 20px}
+  }
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}.scroll-progress{display:none}}
+</style>
+<link rel="stylesheet" href="theme.css?v=5">
+<script src="theme-toggle.js?v=2"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to case study</a>
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<nav class="nav" aria-label="Primary navigation">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo" aria-label="Silat Technologies home">
+      <svg width="28" height="28" viewBox="0 0 200 200" aria-hidden="true"><path d="M140 50q20 0 20 15 0 10-15 15H65q-15 0-15 15t20 20h75q15 0 15 15 0 20-30 20-25 0-40-10" fill="#1a3a8a"/><path d="M60 150q-15 0-15-15 0-10 15-15h80q15 0 15-15t-20-20H60q-15 0-15-15 0-20 30-20 25 0 40 10" fill="rgba(26,58,138,.3)"/></svg>
+      <span class="nav-logo-word">Silat <span>Technologies</span></span>
+    </a>
+    <ul class="nav-links"><li><a href="/#services">Services</a></li><li><a href="/projects">Work</a></li><li><a href="/#why">Why us</a></li><li><a href="/#process">Process</a></li><li><a href="https://cal.com/silat-tech" class="nav-cta">Book a call</a></li></ul>
+    <button class="nav-hamburger" id="hamburger" type="button" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu"><a href="/#services">Services</a><a href="/projects">Work</a><a href="/#why">Why us</a><a href="/#process">Process</a><a href="https://cal.com/silat-tech" class="mobile-cta">Book a free call →</a></div>
+
+<header class="case-hero">
+  <div class="hero-grid">
+    <div>
+      <p class="eyebrow">AI engineering case study</p>
+      <h1>World<br>Regulations <span class="accent">RAG.</span></h1>
+      <p class="hero-copy">A jurisdiction-aware regulatory intelligence system I built with Python and the Claude API—turning fragmented global rules into grounded, traceable answers for compliance research.</p>
+      <div class="hero-actions"><a href="#architecture" class="btn-primary">Explore architecture <span aria-hidden="true">↓</span></a><a href="#api" class="btn-ghost">Inspect the API</a></div>
+    </div>
+    <div class="rag-console reveal" id="ragConsole" role="region" aria-label="Regulatory research interface">
+      <div class="console-top"><div class="console-dots" aria-label="Window controls"><span class="console-dot" aria-hidden="true"></span><button class="console-control" id="consoleMinimize" type="button" aria-label="Minimize regulatory research window" aria-controls="ragConsoleBody" aria-expanded="true"><span class="console-dot" aria-hidden="true"></span></button><span class="console-dot" aria-hidden="true"></span></div><span class="console-id"><span class="console-title-full">Regulatory intelligence / Research mode</span><span class="console-title-min">World Regulations RAG — minimized</span></span><button class="console-restore" id="consoleRestore" type="button" hidden>Restore ↗</button></div>
+      <div class="console-body" id="ragConsoleBody">
+      <div class="query-block"><p class="query-label">Research question</p><p class="query">What disclosures apply to virtual-asset marketing across selected jurisdictions?</p><div class="query-meta"><span class="chip live">Grounded mode</span><span class="chip">UAE</span><span class="chip">European Union</span><span class="chip">Singapore</span></div></div>
+      <div class="console-tabs" role="tablist" aria-label="Research result views"><button class="console-tab active" role="tab" aria-selected="true" data-panel="answer">Answer</button><button class="console-tab" role="tab" aria-selected="false" data-panel="sources">Sources</button><button class="console-tab" role="tab" aria-selected="false" data-panel="audit">Audit</button></div>
+      <div class="console-panel active" id="panel-answer" role="tabpanel"><p class="answer-lead">Requirements vary by regulator, audience, and communication channel. The system separates shared obligations from jurisdiction-specific controls:</p><ul class="answer-list"><li>Present risk statements prominently and avoid claims that imply guaranteed returns. <span class="cite">[UAE-01]</span></li><li>Keep promotional content fair, clear, and consistent with applicable product disclosures. <span class="cite">[EU-02]</span></li><li>Apply market-specific consumer-protection restrictions before publication. <span class="cite">[SG-01]</span></li></ul></div>
+      <div class="console-panel" id="panel-sources" role="tabpanel"><div class="sources"><div class="source-row"><span class="source-jur">UAE</span><span class="source-title">Virtual-asset marketing rules and guidance</span><span class="source-score">Dense + lexical</span></div><div class="source-row"><span class="source-jur">EU</span><span class="source-title">Markets in Crypto-Assets regulatory framework</span><span class="source-score">Metadata match</span></div><div class="source-row"><span class="source-jur">SG</span><span class="source-title">Digital payment token consumer-protection measures</span><span class="source-score">Re-ranked</span></div></div></div>
+      <div class="console-panel" id="panel-audit" role="tabpanel"><div class="audit-grid"><div class="audit-cell"><p class="mini-label">Jurisdiction filter</p><p class="audit-state ok">Passed</p></div><div class="audit-cell"><p class="mini-label">Citation coverage</p><p class="audit-state ok">Passed</p></div><div class="audit-cell"><p class="mini-label">Unsupported claims</p><p class="audit-state">None flagged</p></div><div class="audit-cell"><p class="mini-label">Review state</p><p class="audit-state">Human verification</p></div></div></div>
+      <div class="console-status"><span class="status-live">● Context assembled</span><span>Grounded in retrieved regulatory sources</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="meta-grid reveal"><div class="meta-item"><p class="meta-label">Role</p><p class="meta-value">AI Engineer · End-to-end system design</p></div><div class="meta-item"><p class="meta-label">Context</p><p class="meta-value">Global regulatory research at CryptoCompliance.AI</p></div><div class="meta-item"><p class="meta-label">Core stack</p><p class="meta-value">Python, Claude API, FastAPI, vector search</p></div><div class="meta-item"><p class="meta-label">Engineering focus</p><p class="meta-value">Retrieval quality, citations, temporal accuracy</p></div></div>
+</header>
+
+<main id="main">
+  <section class="section" id="overview">
+    <div class="section-head"><div><span class="section-num">01 / The system</span><h2 class="section-title">Research, not guesswork.</h2></div><p class="section-note">The product treats a legal answer as an evidence pipeline—not a single model call.</p></div>
+    <div class="intro-grid reveal"><p class="lead">Global regulation is fragmented by jurisdiction, regulator, document type, and time. The RAG makes that complexity searchable.</p><div class="body-copy"><p>I designed the system to ingest regulatory material from multiple markets, preserve the legal metadata that gives each passage meaning, and retrieve the right evidence before Claude writes an answer.</p><p>The key engineering decision was to make <strong>jurisdiction, regulator, instrument, publication date, and effective date</strong> first-class retrieval fields. That prevents a semantically similar rule from the wrong market—or the wrong point in time—from silently contaminating an answer.</p></div></div>
+    <div class="signal-strip reveal"><article class="signal"><p class="signal-mark">01</p><h3>Evidence before generation</h3><p>Claude receives a deliberately assembled evidence pack, not unrestricted access to the entire corpus.</p></article><article class="signal"><p class="signal-mark">02</p><h3>Legal-aware retrieval</h3><p>Semantic similarity is combined with exact jurisdiction filters, lexical signals, and re-ranking.</p></article><article class="signal"><p class="signal-mark">03</p><h3>Traceable outputs</h3><p>Every material claim is designed to map back to a source, passage, and document version.</p></article></div>
+  </section>
+
+  <section class="section" id="architecture">
+    <div class="section-head"><div><span class="section-num">02 / Architecture</span><h2 class="section-title">The evidence pipeline.</h2></div><p class="section-note">Six focused stages turn a shifting regulatory corpus into reviewable intelligence.</p></div>
+    <div class="architecture-shell reveal"><div class="arch-header"><p>World regulations RAG / System map</p><p class="arch-live">Citation-first path</p></div><div class="pipeline">
+      <article class="pipe-step"><p class="pipe-num">Stage 01</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><path d="M5 8.5h22M5 16h22M5 23.5h15" stroke="currentColor" stroke-width="1.5"/><circle cx="25" cy="23.5" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Source acquisition</h3><p>Collect regulatory pages, circulars, consultation papers, guidance, and PDFs from authoritative sources.</p><span class="pipe-tech">Connectors · Jobs · Versioning</span></article>
+      <article class="pipe-step"><p class="pipe-num">Stage 02</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><path d="M8 4.5h11l5 5v18H8zM19 4.5v5h5M12 15h8M12 19h8M12 23h5" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Parse & normalize</h3><p>Extract clean text, retain headings and tables, remove navigation noise, and standardize document structure.</p><span class="pipe-tech">Python · Parsers · OCR fallback</span></article>
+      <article class="pipe-step"><p class="pipe-num">Stage 03</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><path d="M6 7h8v8H6zM18 7h8v8h-8zM6 19h8v6H6zM18 19h8v6h-8z" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Legal chunking</h3><p>Split by article, section, and semantic boundary while inheriting jurisdiction and document metadata.</p><span class="pipe-tech">Structure · Overlap · Metadata</span></article>
+      <article class="pipe-step"><p class="pipe-num">Stage 04</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><circle cx="14" cy="14" r="8" stroke="currentColor" stroke-width="1.5"/><path d="m20 20 7 7M10 11h8M10 15h6M10 19h4" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Hybrid retrieval</h3><p>Combine dense vector search, keyword relevance, metadata constraints, and document diversity.</p><span class="pipe-tech">Embeddings · BM25 · Filters</span></article>
+      <article class="pipe-step"><p class="pipe-num">Stage 05</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><path d="M16 4v24M8 9h16M7 9l-4 8h8zM25 9l-4 8h8zM10 26h12" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Claude synthesis</h3><p>Build a bounded evidence pack and ask Claude to compare, qualify, cite, and abstain when evidence is weak.</p><span class="pipe-tech">Claude API · Structured output</span></article>
+      <article class="pipe-step"><p class="pipe-num">Stage 06</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><path d="M6 5h20v22H6zM10 10h12M10 15h12M10 20h7" stroke="currentColor" stroke-width="1.5"/><path d="m20 21 2 2 4-5" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Answer & audit</h3><p>Return structured conclusions, inline citations, source excerpts, and review metadata through the API.</p><span class="pipe-tech">FastAPI · Schemas · Logs</span></article>
+    </div><div class="arch-caption"><div class="caption-block"><h3>The model is one layer—not the system.</h3><p>Retrieval, filtering, context construction, validation, and observability do most of the reliability work around the LLM.</p></div><div class="caption-block"><h3>Every stage is debuggable.</h3><p>A weak answer can be traced to ingestion, metadata, retrieval, ranking, prompting, or citation mapping instead of being treated as an opaque failure.</p></div></div></div>
+  </section>
+
+  <section class="section" id="api">
+    <div class="section-head"><div><span class="section-num">03 / API engineering</span><h2 class="section-title">Claude behind a contract.</h2></div><p class="section-note">A typed Python service turns model capability into a predictable application interface.</p></div>
+    <div class="api-layout reveal"><div class="code-window"><div class="code-head"><span>POST /v1/regulatory/research</span><button class="copy-btn" type="button" data-copy="api-code">Copy request</button></div><pre id="api-code"><span class="code-dim"># Python client request</span>
+<span class="code-blue">payload</span> = {
+  <span class="code-green">"question"</span>: <span class="code-white">"Compare marketing controls"</span>,
+  <span class="code-green">"jurisdictions"</span>: [<span class="code-white">"AE"</span>, <span class="code-white">"EU"</span>, <span class="code-white">"SG"</span>],
+  <span class="code-green">"as_of"</span>: <span class="code-white">"2026-07-01"</span>,
+  <span class="code-green">"answer_mode"</span>: <span class="code-white">"comparative"</span>,
+  <span class="code-green">"citations"</span>: <span class="code-blue">True</span>
+}
+
+<span class="code-blue">result</span> = client.post(
+  <span class="code-white">"/v1/regulatory/research"</span>,
+  json=payload,
+  timeout=<span class="code-blue">60</span>
+)
+
+<span class="code-dim"># Validated response schema</span>
+{
+  <span class="code-green">"answer"</span>: <span class="code-white">"..."</span>,
+  <span class="code-green">"jurisdiction_findings"</span>: [...],
+  <span class="code-green">"citations"</span>: [...],
+  <span class="code-green">"review_flags"</span>: []
+}</pre></div><div class="api-decisions">
+      <article class="decision"><span class="decision-num">01</span><div><h3>Typed inputs</h3><p>Pydantic validation rejects ambiguous jurisdiction codes, invalid dates, and unsupported answer modes before retrieval begins.</p></div></article>
+      <article class="decision"><span class="decision-num">02</span><div><h3>Bounded model calls</h3><p>The service sends Claude only ranked evidence and explicit output rules, with timeouts, retry policy, and token budgets controlled in Python.</p></div></article>
+      <article class="decision"><span class="decision-num">03</span><div><h3>Structured responses</h3><p>Applications receive stable fields for findings, sources, confidence signals, and review flags—not a blob of unpredictable prose.</p></div></article>
+      <article class="decision"><span class="decision-num">04</span><div><h3>Operational visibility</h3><p>Request IDs connect API latency, retrieval traces, model usage, citations, and failures across the full execution path.</p></div></article>
+    </div></div>
+  </section>
+
+  <section class="section" id="retrieval">
+    <div class="section-head"><div><span class="section-num">04 / Retrieval</span><h2 class="section-title">Similarity is not enough.</h2></div><p class="section-note">Legal relevance depends on where, when, who, and under which instrument a passage applies.</p></div>
+    <div class="retrieval-grid reveal"><article class="retrieval-story"><h3>Metadata narrows the legal universe before ranking begins.</h3><p>The retriever first constrains the corpus with deterministic legal context. Dense and lexical results are then fused, re-ranked, and diversified so one long document cannot crowd out every other authority.</p><ul class="filter-list"><li><span>Jurisdiction</span><strong>Exact / regional scope</strong></li><li><span>Regulator</span><strong>Issuing authority</strong></li><li><span>Instrument</span><strong>Rule · guidance · consultation</strong></li><li><span>Time</span><strong>Published · effective · superseded</strong></li><li><span>Domain</span><strong>Licensing · AML · marketing</strong></li></ul></article><div class="rank-lab"><div class="rank-title"><h3>Illustrative retrieval trace</h3><span>Fusion + re-rank</span></div><div class="rank-list">
+      <div class="rank-item"><span class="rank-index">01</span><span class="rank-name">Marketing communication requirements<span class="rank-meta">UAE · Rule · Current</span></span><span class="rank-score"><span style="width:96%"></span></span></div>
+      <div class="rank-item"><span class="rank-index">02</span><span class="rank-name">Crypto-asset communications framework<span class="rank-meta">EU · Regulation · Current</span></span><span class="rank-score"><span style="width:91%"></span></span></div>
+      <div class="rank-item"><span class="rank-index">03</span><span class="rank-name">Consumer-protection expectations<span class="rank-meta">Singapore · Guidance · Current</span></span><span class="rank-score"><span style="width:87%"></span></span></div>
+      <div class="rank-item"><span class="rank-index">04</span><span class="rank-name">Risk statement and disclosure controls<span class="rank-meta">UAE · Guidance · Current</span></span><span class="rank-score"><span style="width:82%"></span></span></div>
+      <div class="rank-item"><span class="rank-index">05</span><span class="rank-name">Cross-border promotion considerations<span class="rank-meta">Comparative · Analysis · Secondary</span></span><span class="rank-score"><span style="width:69%"></span></span></div>
+    </div><div class="rank-legend"><span>Deterministic filters</span><span>Dense + keyword</span><span>Diversity pass</span></div></div></div>
+  </section>
+
+  <section class="section" id="trust">
+    <div class="section-head"><div><span class="section-num">05 / Trust layer</span><h2 class="section-title">Designed to know its limits.</h2></div><p class="section-note">The answer contract makes uncertainty and evidence quality visible to the reviewer.</p></div>
+    <div class="trust-grid reveal"><article class="trust-card"><p class="trust-num">Control 01</p><h3>Citation coverage</h3><p>Material claims must point to retrieved passages. Unsupported statements are removed or marked for review.</p><span class="trust-rule">Claim → source</span></article><article class="trust-card"><p class="trust-num">Control 02</p><h3>Temporal awareness</h3><p>Effective dates and superseded versions stay attached to chunks so historical rules do not masquerade as current.</p><span class="trust-rule">As-of date</span></article><article class="trust-card"><p class="trust-num">Control 03</p><h3>Abstention path</h3><p>If evidence is thin, conflicting, or outside the selected scope, the system says so instead of completing the gap.</p><span class="trust-rule">No-answer mode</span></article><article class="trust-card"><p class="trust-num">Control 04</p><h3>Human review</h3><p>Source excerpts, document links, and review flags keep a qualified person in control of the final interpretation.</p><span class="trust-rule">Decision support</span></article></div>
+  </section>
+
+  <section class="section" id="evaluation">
+    <div class="section-head"><div><span class="section-num">06 / Evaluation</span><h2 class="section-title">Quality at every layer.</h2></div><p class="section-note">RAG evaluation separates retrieval failures from answer failures so improvements are targeted.</p></div>
+    <div class="eval-board reveal"><article class="eval-panel"><h3>Retrieval evaluation</h3><p>A curated set of regulatory questions tests whether the correct authority and passage reach the context window across markets and document types.</p><div class="metric-list"><div class="metric"><span class="metric-name">Relevant passage found in top results</span><span class="metric-type">Recall@K</span></div><div class="metric"><span class="metric-name">Correct authority ranked early</span><span class="metric-type">MRR</span></div><div class="metric"><span class="metric-name">Results cover required jurisdictions</span><span class="metric-type">Coverage</span></div><div class="metric"><span class="metric-name">Superseded documents excluded</span><span class="metric-type">Temporal</span></div></div></article><article class="eval-panel"><h3>Answer evaluation</h3><p>Generated answers are reviewed against the retrieved evidence and the actual research intent—not scored only for fluency.</p><div class="failure-list"><div class="failure"><div class="failure-head"><span>Grounding</span><span class="failure-status">Evidence check</span></div><p>Does every conclusion follow from a cited passage?</p></div><div class="failure"><div class="failure-head"><span>Completeness</span><span class="failure-status">Scope check</span></div><p>Were all requested jurisdictions and sub-questions addressed?</p></div><div class="failure"><div class="failure-head"><span>Citation precision</span><span class="failure-status">Attribution</span></div><p>Does each citation support the exact sentence it follows?</p></div><div class="failure"><div class="failure-head"><span>Calibrated uncertainty</span><span class="failure-status">Safety</span></div><p>Does the answer qualify conflict, ambiguity, and missing evidence?</p></div></div></article></div>
+  </section>
+</main>
+
+<section class="stack-band" aria-labelledby="stack-title"><div class="stack-inner"><div class="section-head"><div><span class="section-num">07 / Engineering depth</span><h2 class="section-title" id="stack-title">What I owned.</h2></div><p class="section-note">From data ingestion to the API boundary and the behavior of the final answer.</p></div><div class="stack-grid reveal"><div><p class="stack-lead">I built the bridge between <span>regulatory data</span> and a reliable AI product.</p><p class="stack-copy">The work combined backend engineering, information retrieval, prompt and context design, data modeling, evaluation, and production safeguards. The result was not a chatbot skin—it was a domain-specific research system with an LLM inside it.</p></div><div class="stack-list"><div class="stack-item"><span>Language</span><strong>Python</strong></div><div class="stack-item"><span>LLM</span><strong>Claude API</strong></div><div class="stack-item"><span>Service</span><strong>FastAPI + Pydantic</strong></div><div class="stack-item"><span>Retrieval</span><strong>Hybrid search + re-ranking</strong></div><div class="stack-item"><span>Data</span><strong>Embeddings + legal metadata</strong></div><div class="stack-item"><span>Reliability</span><strong>Evaluation + observability</strong></div></div></div></div></section>
+
+<section class="next-project"><h2>AI answers are easy.<br><span class="accent">Evidence is engineering.</span></h2><p>This project demonstrates how I design AI systems for high-context domains: grounded in real data, constrained by clear contracts, and built for people who need to verify the result.</p><a href="/projects" class="btn-primary">Explore more work</a></section>
+
+<footer><div class="footer-inner"><a href="/" class="footer-logo"><svg width="22" height="22" viewBox="0 0 200 200" aria-hidden="true"><path d="M140 50q20 0 20 15 0 10-15 15H65q-15 0-15 15t20 20h75q15 0 15 15 0 20-30 20-25 0-40-10" fill="#1a3a8a"/><path d="M60 150q-15 0-15-15 0-10 15-15h80q15 0 15-15t-20-20H60q-15 0-15-15 0-20 30-20 25 0 40 10" fill="rgba(26,58,138,.3)"/></svg>Silat <span>Technologies</span></a><ul class="footer-links"><li><a href="/#services">Services</a></li><li><a href="/projects">Work</a></li><li><a href="mailto:hello@silat.ae">Contact</a></li><li><a href="https://wa.me/971502218485" target="_blank" rel="noopener">WhatsApp</a></li></ul><p class="footer-copy">© 2026 Silat Technologies · Dubai, UAE</p></div></footer>
+
+<script>
+(function(){
+  const hamburger=document.getElementById('hamburger');
+  const menu=document.getElementById('mobileMenu');
+  if(hamburger&&menu){hamburger.addEventListener('click',()=>{const open=menu.classList.toggle('open');hamburger.classList.toggle('open',open);hamburger.setAttribute('aria-expanded',String(open))});menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{menu.classList.remove('open');hamburger.classList.remove('open');hamburger.setAttribute('aria-expanded','false')}))}
+
+  const tabs=[...document.querySelectorAll('.console-tab')];
+  tabs.forEach(tab=>tab.addEventListener('click',()=>{tabs.forEach(t=>{const active=t===tab;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active))});document.querySelectorAll('.console-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+tab.dataset.panel))}));
+
+  const consoleWindow=document.getElementById('ragConsole');
+  const consoleBody=document.getElementById('ragConsoleBody');
+  const minimizeButton=document.getElementById('consoleMinimize');
+  const restoreButton=document.getElementById('consoleRestore');
+  const heroGrid=document.querySelector('.hero-grid');
+  function setConsoleMinimized(minimized){
+    if(!consoleWindow||!consoleBody||!minimizeButton||!restoreButton)return;
+    consoleWindow.classList.toggle('is-minimized',minimized);
+    heroGrid?.classList.toggle('window-minimized',minimized);
+    consoleBody.hidden=minimized;
+    consoleBody.setAttribute('aria-hidden',String(minimized));
+    restoreButton.hidden=!minimized;
+    minimizeButton.setAttribute('aria-expanded',String(!minimized));
+    minimizeButton.setAttribute('aria-label',minimized?'Restore regulatory research window':'Minimize regulatory research window');
+    if(!minimized)requestAnimationFrame(()=>minimizeButton.focus());
+  }
+  minimizeButton?.addEventListener('click',()=>setConsoleMinimized(!consoleWindow.classList.contains('is-minimized')));
+  restoreButton?.addEventListener('click',()=>setConsoleMinimized(false));
+
+  const reveal=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('in');reveal.unobserve(entry.target)}}),{threshold:.1});
+  document.querySelectorAll('.reveal').forEach(el=>reveal.observe(el));
+
+  const progress=document.getElementById('scrollProgress');
+  function updateProgress(){const max=document.documentElement.scrollHeight-innerHeight;progress.style.transform=`scaleX(${max>0?scrollY/max:0})`}
+  addEventListener('scroll',updateProgress,{passive:true});updateProgress();
+
+  document.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener('click',async()=>{const target=document.getElementById(button.dataset.copy);if(!target)return;try{await navigator.clipboard.writeText(target.innerText);const old=button.textContent;button.textContent='Copied';setTimeout(()=>button.textContent=old,1400)}catch(_){button.textContent='Select code'}}));
+})();
+</script>
+</body>
+</html>
