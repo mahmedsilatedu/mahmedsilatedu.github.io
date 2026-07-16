@@ -3,11 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>World Regulations RAG — Legal AI Case Study · Silat Technologies</title>
-<meta name="description" content="A technical case study of a world-regulations RAG system built with Python and the Claude API for jurisdiction-aware regulatory research, grounded answers, and source-level citations.">
+<title>Legal RAG Case Study | Ahmed Silat</title>
+<meta name="description" content="Legal RAG case study by Ahmed Silat: a jurisdiction-aware regulatory research system built with Python, FastAPI, hybrid retrieval, and the Claude API.">
+<script>
+(function(){
+  var saved = localStorage.getItem('theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
 <link rel="canonical" href="https://mahmedsilatedu.github.io/legal-rag">
 <meta property="og:type" content="website">
-<meta property="og:title" content="World Regulations RAG — Legal AI Case Study">
+<meta property="og:title" content="Legal RAG — AI Engineering Case Study | Ahmed Silat">
 <meta property="og:description" content="How Ahmed Silat built a citation-first regulatory intelligence system with Python, hybrid retrieval, and the Claude API.">
 <meta property="og:url" content="https://mahmedsilatedu.github.io/legal-rag">
 <link rel="icon" type="image/svg+xml" href="silat-icon.svg">
@@ -15,17 +22,26 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
+  :root,[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#07070a;--surface:#0e0e13;--surface-2:#13131a;
+    --border:rgba(245,245,247,.1);--border-mid:rgba(245,245,247,.18);
+    --ink:#f5f5f7;--ink-dim:rgba(245,245,247,.78);--ink-faint:rgba(245,245,247,.58);
+    --blue:#3b82f6;--blue-mid:#60a5fa;--blue-light:#172554;--deep:#08152f;
+    --nav-bg:rgba(7,7,10,.78);--on-accent:#fff;
+    --display:'Syne',system-ui,sans-serif;--body:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
+  }
+  [data-theme="light"]{
+    color-scheme:light;
     --bg:#f8f8f5;--surface:#fff;--surface-2:#f1f1ee;
     --border:rgba(10,10,18,.09);--border-mid:rgba(10,10,18,.17);
     --ink:#0a0a12;--ink-dim:rgba(10,10,18,.72);--ink-faint:rgba(10,10,18,.48);
     --blue:#1a3a8a;--blue-mid:#2563eb;--blue-light:#dbeafe;--deep:#0d2463;
-    --nav-bg:rgba(248,248,245,.9);--on-accent:#fff;
-    --display:'Syne',system-ui,sans-serif;--body:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
+    --nav-bg:rgba(248,248,245,.84);--on-accent:#fff;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{font-size:16px;scroll-behavior:smooth}
-  body{font-family:var(--body);background:var(--bg);color:var(--ink);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  body{font-family:var(--body);background:var(--bg);color:var(--ink);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background-color .3s ease,color .3s ease}
   a{color:inherit;text-decoration:none}button{font:inherit}svg{display:block;max-width:100%}
   ::selection{background:var(--blue-mid);color:#fff}section{scroll-margin-top:74px}
   .skip-link{position:fixed;left:16px;top:-80px;z-index:999;background:var(--ink);color:var(--bg);padding:10px 16px;font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.08em}
@@ -34,22 +50,30 @@
 
   .nav{position:fixed;inset:0 0 auto;z-index:200;background:var(--nav-bg);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
   .nav-inner{max-width:1240px;height:64px;margin:auto;padding:0 40px;display:flex;align-items:center;justify-content:space-between}
-  .nav-logo,.footer-logo{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:16px}
-  .nav-logo-word>span,.footer-logo>span{font-weight:400;color:var(--ink-dim)}
-  .nav-links{display:flex;align-items:center;gap:28px;list-style:none;margin-left:auto}
+  .nav-logo{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:-.02em}
+  .nav-right{display:flex;align-items:center;gap:20px}
+  .nav-links{display:flex;align-items:center;gap:28px;list-style:none}
   .nav-links a{font:500 11.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);transition:color .2s}
   .nav-links a:hover,.nav-links a:focus-visible{color:var(--blue-mid)}
-  .nav-cta{background:var(--ink);color:var(--bg)!important;padding:10px 18px}
+  .nav-clock{font:400 10.5px var(--mono);letter-spacing:.05em;color:var(--ink-faint);white-space:nowrap}
+  .clock-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--blue-mid);vertical-align:1px;margin-right:2px}
+  .theme-toggle{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-mid);border-radius:50%;background:none;cursor:pointer;color:var(--ink-dim);transition:border-color .2s,color .2s}
+  .theme-toggle:hover,.theme-toggle:focus-visible{border-color:var(--blue-mid);color:var(--blue-mid);outline:none}
+  .theme-toggle svg{width:15px;height:15px}
+  .theme-toggle .icon-moon{display:none}
+  [data-theme="light"] .theme-toggle .icon-sun{display:none}
+  [data-theme="light"] .theme-toggle .icon-moon{display:block}
   .nav-hamburger{display:none;flex-direction:column;gap:5px;border:0;background:none;cursor:pointer;padding:5px;color:var(--ink)}
   .nav-hamburger span{display:block;width:22px;height:1.5px;background:currentColor;transition:.2s}
   .nav-hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
   .nav-hamburger.open span:nth-child(2){opacity:0}.nav-hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
-  .mobile-menu{display:none;position:fixed;top:64px;left:0;right:0;z-index:199;background:var(--bg);border-bottom:1px solid var(--border-mid);padding:20px 28px 28px;flex-direction:column}
-  .mobile-menu.open{display:flex}.mobile-menu a{padding:14px 0;border-bottom:1px solid var(--border);font:500 14px var(--mono);letter-spacing:.04em;text-transform:uppercase}
-  .mobile-menu a:last-child{border:0}.mobile-cta{background:var(--ink);color:var(--bg)!important;text-align:center;margin-top:10px;padding:14px!important}
+  .mobile-menu{display:none;position:fixed;top:64px;left:0;right:0;z-index:199;background:var(--bg);border-bottom:1px solid var(--border-mid);padding:20px 28px 28px;flex-direction:column;gap:2px}
+  .mobile-menu.open{display:flex}.mobile-menu a{padding:14px 0;border-bottom:1px solid var(--border);font:500 14px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--ink)}
+  .mobile-menu a:last-child{border:0}
 
   .case-hero{max-width:1240px;min-height:94vh;margin:auto;padding:138px 40px 72px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden}
-  .case-hero::before{content:'REGULATIONS';position:absolute;top:100px;left:28px;font:800 clamp(90px,11vw,160px)/.8 var(--display);letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1px rgba(10,10,18,.06);pointer-events:none;white-space:nowrap}
+  .case-hero::before{content:'LEGAL RAG';position:absolute;top:100px;left:28px;font:800 clamp(90px,11vw,160px)/.8 var(--display);letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1px rgba(245,245,247,.055);pointer-events:none;white-space:nowrap}
+  [data-theme="light"] .case-hero::before{-webkit-text-stroke:1px rgba(10,10,18,.06)}
   .hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(64px,6vw,88px);align-items:center;position:relative;z-index:1;transition:grid-template-columns .28s ease}
   .hero-grid.window-minimized{grid-template-columns:minmax(0,1fr)}
   .eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:22px;font:500 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--blue-mid)}
@@ -167,15 +191,13 @@
     .hero-grid,.hero-grid.window-minimized,.intro-grid,.stack-grid{grid-template-columns:1fr}.hero-grid{gap:42px}.case-hero{min-height:auto}.pipeline{grid-template-columns:repeat(3,1fr)}.pipe-step{border-bottom:1px solid var(--border)}.pipe-step:nth-child(3){border-right:0}.pipe-step:nth-child(3)::after{display:none}.pipe-step:nth-child(n+4){border-bottom:0}.retrieval-grid{grid-template-columns:1fr}.trust-grid{grid-template-columns:1fr 1fr}.hero-visual{max-width:760px}
   }
   @media(max-width:800px){
-    .nav-inner{padding:0 24px}.nav-links{display:none}.nav-hamburger{display:flex}.case-hero{padding:112px 24px 60px}.case-hero::before{display:none}.hero-grid{grid-template-columns:1fr}.meta-grid{grid-template-columns:1fr 1fr}.section{padding:82px 24px}.section-head{align-items:flex-start;flex-direction:column}.section-note{text-align:left}.signal-strip{grid-template-columns:1fr}.pipeline{grid-template-columns:1fr 1fr}.pipe-step:nth-child(3){border-right:1px solid var(--border)}.pipe-step:nth-child(3)::after{display:grid}.pipe-step:nth-child(2n){border-right:0}.pipe-step:nth-child(2n)::after{display:none}.pipe-step:nth-child(n+4){border-bottom:1px solid var(--border)}.pipe-step:nth-last-child(-n+2){border-bottom:0}.arch-caption,.api-layout,.eval-board{grid-template-columns:1fr}.trust-grid{grid-template-columns:1fr 1fr}.stack-inner{padding:82px 24px}.footer-inner{padding:0 24px;flex-direction:column;text-align:center}
+    .nav-inner{padding:0 24px}.nav-links{display:none}.nav-clock{display:none}.nav-hamburger{display:flex}.case-hero{padding:112px 24px 60px}.case-hero::before{display:none}.hero-grid{grid-template-columns:1fr}.meta-grid{grid-template-columns:1fr 1fr}.section{padding:82px 24px}.section-head{align-items:flex-start;flex-direction:column}.section-note{text-align:left}.signal-strip{grid-template-columns:1fr}.pipeline{grid-template-columns:1fr 1fr}.pipe-step:nth-child(3){border-right:1px solid var(--border)}.pipe-step:nth-child(3)::after{display:grid}.pipe-step:nth-child(2n){border-right:0}.pipe-step:nth-child(2n)::after{display:none}.pipe-step:nth-child(n+4){border-bottom:1px solid var(--border)}.pipe-step:nth-last-child(-n+2){border-bottom:0}.arch-caption,.api-layout,.eval-board{grid-template-columns:1fr}.trust-grid{grid-template-columns:1fr 1fr}.stack-inner{padding:82px 24px}.footer-inner{padding:0 24px;flex-direction:column;text-align:center}
   }
   @media(max-width:520px){
     .nav-inner{height:60px;padding:0 18px}.rag-console.is-minimized{top:76px;left:16px;right:16px;width:auto}.nav-logo{font-size:14px;gap:7px}.nav-logo svg{width:24px}.mobile-menu{top:60px;padding:16px 20px 22px}.case-hero{padding:96px 18px 48px}h1{font-size:clamp(45px,14vw,58px)}.hero-copy{font-size:15.5px;line-height:1.65}.hero-actions{display:grid}.hero-actions a{min-height:48px}.rag-console{border-radius:6px;box-shadow:0 18px 44px rgba(13,36,99,.13)}.query-block,.console-panel{padding:15px}.console-tabs{padding:0 15px;gap:17px}.query{font-size:13.5px}.console-panel{min-height:300px}.source-row{grid-template-columns:42px 1fr}.source-score{display:none}.audit-grid{grid-template-columns:1fr}.console-status{padding:10px 15px;font-size:7.5px}.meta-grid{grid-template-columns:1fr;margin-top:34px}.section{padding:68px 18px}.section-head{margin-bottom:36px}.section-title{font-size:36px}.lead{font-size:29px}.signal{padding:25px}.pipeline{grid-template-columns:1fr}.pipe-step{min-height:0;gap:0;border-right:0!important;border-bottom:1px solid var(--border)!important}.pipe-step:last-child{border-bottom:0!important}.pipe-step::after{display:none!important}.pipe-tech{margin-top:22px}.arch-caption{display:block}.caption-block+ .caption-block{border-top:1px solid var(--border)}.code-head{padding:0 14px}pre{padding:20px 14px;font-size:10.5px}.api-decisions,.retrieval-story,.rank-lab,.eval-panel{padding:26px 22px}.rank-item{grid-template-columns:23px 1fr 48px;padding:11px}.trust-grid{grid-template-columns:1fr}.trust-card{min-height:0;padding:26px}.trust-num{margin-bottom:20px}.stack-inner{padding:68px 18px}.stack-list{grid-template-columns:1fr}.stack-item{border-right:0!important;border-bottom:1px solid rgba(255,255,255,.12)!important}.stack-item:last-child{border-bottom:0!important}.next-project{padding:74px 18px 82px}.footer-inner{padding:0 18px}.footer-links{justify-content:center;flex-wrap:wrap;gap:12px 20px}
   }
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}.scroll-progress{display:none}}
 </style>
-<link rel="stylesheet" href="theme.css?v=5">
-<script src="theme-toggle.js?v=2"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to case study</a>
@@ -183,26 +205,41 @@
 
 <nav class="nav" aria-label="Primary navigation">
   <div class="nav-inner">
-    <a href="/" class="nav-logo" aria-label="Silat Technologies home">
-      <svg width="28" height="28" viewBox="0 0 200 200" aria-hidden="true"><path d="M140 50q20 0 20 15 0 10-15 15H65q-15 0-15 15t20 20h75q15 0 15 15 0 20-30 20-25 0-40-10" fill="#1a3a8a"/><path d="M60 150q-15 0-15-15 0-10 15-15h80q15 0 15-15t-20-20H60q-15 0-15-15 0-20 30-20 25 0 40 10" fill="rgba(26,58,138,.3)"/></svg>
-      <span class="nav-logo-word">Silat <span>Technologies</span></span>
-    </a>
-    <ul class="nav-links"><li><a href="/#services">Services</a></li><li><a href="/projects">Work</a></li><li><a href="/#why">Why us</a></li><li><a href="/#process">Process</a></li><li><a href="https://cal.com/silat-tech" class="nav-cta">Book a call</a></li></ul>
-    <button class="nav-hamburger" id="hamburger" type="button" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    <a href="index.html" class="nav-logo" aria-label="Ahmed Silat portfolio home">M Ahmed Silat</a>
+    <div class="nav-right">
+      <ul class="nav-links">
+        <li><a href="index.html#projects">Projects</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#api">API</a></li>
+        <li><a href="#trust">Trust</a></li>
+        <li class="nav-clock" id="navClock"><span class="clock-dot"></span> Dubai --:--</li>
+      </ul>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light/dark theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg>
+      </button>
+      <button class="nav-hamburger" id="hamburger" type="button" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
   </div>
 </nav>
-<div class="mobile-menu" id="mobileMenu"><a href="/#services">Services</a><a href="/projects">Work</a><a href="/#why">Why us</a><a href="/#process">Process</a><a href="https://cal.com/silat-tech" class="mobile-cta">Book a free call →</a></div>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html#projects">Projects</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#api">API</a>
+  <a href="#trust">Trust</a>
+  <a href="index.html#contact">Contact</a>
+</div>
 
 <header class="case-hero">
   <div class="hero-grid">
     <div>
       <p class="eyebrow">AI engineering case study</p>
-      <h1>World<br>Regulations <span class="accent">RAG.</span></h1>
+      <h1>Legal<br><span class="accent">RAG.</span></h1>
       <p class="hero-copy">A jurisdiction-aware regulatory intelligence system I built with Python and the Claude API—turning fragmented global rules into grounded, traceable answers for compliance research.</p>
       <div class="hero-actions"><a href="#architecture" class="btn-primary">Explore architecture <span aria-hidden="true">↓</span></a><a href="#api" class="btn-ghost">Inspect the API</a></div>
     </div>
     <div class="rag-console reveal" id="ragConsole" role="region" aria-label="Regulatory research interface">
-      <div class="console-top"><div class="console-dots" aria-label="Window controls"><span class="console-dot" aria-hidden="true"></span><button class="console-control" id="consoleMinimize" type="button" aria-label="Minimize regulatory research window" aria-controls="ragConsoleBody" aria-expanded="true"><span class="console-dot" aria-hidden="true"></span></button><span class="console-dot" aria-hidden="true"></span></div><span class="console-id"><span class="console-title-full">Regulatory intelligence / Research mode</span><span class="console-title-min">World Regulations RAG — minimized</span></span><button class="console-restore" id="consoleRestore" type="button" hidden>Restore ↗</button></div>
+      <div class="console-top"><div class="console-dots" aria-label="Window controls"><span class="console-dot" aria-hidden="true"></span><button class="console-control" id="consoleMinimize" type="button" aria-label="Minimize regulatory research window" aria-controls="ragConsoleBody" aria-expanded="true"><span class="console-dot" aria-hidden="true"></span></button><span class="console-dot" aria-hidden="true"></span></div><span class="console-id"><span class="console-title-full">Regulatory intelligence / Research mode</span><span class="console-title-min">Legal RAG — minimized</span></span><button class="console-restore" id="consoleRestore" type="button" hidden>Restore ↗</button></div>
       <div class="console-body" id="ragConsoleBody">
       <div class="query-block"><p class="query-label">Research question</p><p class="query">What disclosures apply to virtual-asset marketing across selected jurisdictions?</p><div class="query-meta"><span class="chip live">Grounded mode</span><span class="chip">UAE</span><span class="chip">European Union</span><span class="chip">Singapore</span></div></div>
       <div class="console-tabs" role="tablist" aria-label="Research result views"><button class="console-tab active" role="tab" aria-selected="true" data-panel="answer">Answer</button><button class="console-tab" role="tab" aria-selected="false" data-panel="sources">Sources</button><button class="console-tab" role="tab" aria-selected="false" data-panel="audit">Audit</button></div>
@@ -225,7 +262,7 @@
 
   <section class="section" id="architecture">
     <div class="section-head"><div><span class="section-num">02 / Architecture</span><h2 class="section-title">The evidence pipeline.</h2></div><p class="section-note">Six focused stages turn a shifting regulatory corpus into reviewable intelligence.</p></div>
-    <div class="architecture-shell reveal"><div class="arch-header"><p>World regulations RAG / System map</p><p class="arch-live">Citation-first path</p></div><div class="pipeline">
+    <div class="architecture-shell reveal"><div class="arch-header"><p>Legal RAG / System map</p><p class="arch-live">Citation-first path</p></div><div class="pipeline">
       <article class="pipe-step"><p class="pipe-num">Stage 01</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><path d="M5 8.5h22M5 16h22M5 23.5h15" stroke="currentColor" stroke-width="1.5"/><circle cx="25" cy="23.5" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Source acquisition</h3><p>Collect regulatory pages, circulars, consultation papers, guidance, and PDFs from authoritative sources.</p><span class="pipe-tech">Connectors · Jobs · Versioning</span></article>
       <article class="pipe-step"><p class="pipe-num">Stage 02</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><path d="M8 4.5h11l5 5v18H8zM19 4.5v5h5M12 15h8M12 19h8M12 23h5" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Parse & normalize</h3><p>Extract clean text, retain headings and tables, remove navigation noise, and standardize document structure.</p><span class="pipe-tech">Python · Parsers · OCR fallback</span></article>
       <article class="pipe-step"><p class="pipe-num">Stage 03</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><path d="M6 7h8v8H6zM18 7h8v8h-8zM6 19h8v6H6zM18 19h8v6h-8z" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Legal chunking</h3><p>Split by article, section, and semantic boundary while inheriting jurisdiction and document metadata.</p><span class="pipe-tech">Structure · Overlap · Metadata</span></article>
@@ -290,12 +327,32 @@
 
 <section class="stack-band" aria-labelledby="stack-title"><div class="stack-inner"><div class="section-head"><div><span class="section-num">07 / Engineering depth</span><h2 class="section-title" id="stack-title">What I owned.</h2></div><p class="section-note">From data ingestion to the API boundary and the behavior of the final answer.</p></div><div class="stack-grid reveal"><div><p class="stack-lead">I built the bridge between <span>regulatory data</span> and a reliable AI product.</p><p class="stack-copy">The work combined backend engineering, information retrieval, prompt and context design, data modeling, evaluation, and production safeguards. The result was not a chatbot skin—it was a domain-specific research system with an LLM inside it.</p></div><div class="stack-list"><div class="stack-item"><span>Language</span><strong>Python</strong></div><div class="stack-item"><span>LLM</span><strong>Claude API</strong></div><div class="stack-item"><span>Service</span><strong>FastAPI + Pydantic</strong></div><div class="stack-item"><span>Retrieval</span><strong>Hybrid search + re-ranking</strong></div><div class="stack-item"><span>Data</span><strong>Embeddings + legal metadata</strong></div><div class="stack-item"><span>Reliability</span><strong>Evaluation + observability</strong></div></div></div></div></section>
 
-<section class="next-project"><h2>AI answers are easy.<br><span class="accent">Evidence is engineering.</span></h2><p>This project demonstrates how I design AI systems for high-context domains: grounded in real data, constrained by clear contracts, and built for people who need to verify the result.</p><a href="/projects" class="btn-primary">Explore more work</a></section>
+<section class="next-project">
+  <h2>Back to the<br><span class="accent">portfolio.</span></h2>
+  <p>Legal RAG sits alongside my broader work in full-stack AI systems, backend APIs, automation, and data products.</p>
+  <a href="index.html#projects" class="btn-primary">View all projects</a>
+</section>
 
-<footer><div class="footer-inner"><a href="/" class="footer-logo"><svg width="22" height="22" viewBox="0 0 200 200" aria-hidden="true"><path d="M140 50q20 0 20 15 0 10-15 15H65q-15 0-15 15t20 20h75q15 0 15 15 0 20-30 20-25 0-40-10" fill="#1a3a8a"/><path d="M60 150q-15 0-15-15 0-10 15-15h80q15 0 15-15t-20-20H60q-15 0-15-15 0-20 30-20 25 0 40 10" fill="rgba(26,58,138,.3)"/></svg>Silat <span>Technologies</span></a><ul class="footer-links"><li><a href="/#services">Services</a></li><li><a href="/projects">Work</a></li><li><a href="mailto:hello@silat.ae">Contact</a></li><li><a href="https://wa.me/971502218485" target="_blank" rel="noopener">WhatsApp</a></li></ul><p class="footer-copy">© 2026 Silat Technologies · Dubai, UAE</p></div></footer>
+<footer>
+  <div class="footer-inner">
+    <p class="footer-copy">&copy; 2026 Ahmed Silat &middot; Dubai, UAE</p>
+    <ul class="footer-links">
+      <li><a href="https://github.com/mahmedsilatedu" target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href="https://linkedin.com/in/mahmedsilat" target="_blank" rel="noopener">LinkedIn</a></li>
+      <li><a href="mailto:mahmedsilat@gmail.com">Email</a></li>
+    </ul>
+  </div>
+</footer>
 
 <script>
 (function(){
+  const themeButton=document.getElementById('themeToggle');
+  if(themeButton){themeButton.addEventListener('click',()=>{const next=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',next);localStorage.setItem('theme',next)})}
+
+  const navClock=document.getElementById('navClock');
+  function updateClock(){if(!navClock)return;const now=new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Dubai',hour:'2-digit',minute:'2-digit'});navClock.innerHTML=`<span class="clock-dot"></span> Dubai ${now}`}
+  updateClock();setInterval(updateClock,30000);
+
   const hamburger=document.getElementById('hamburger');
   const menu=document.getElementById('mobileMenu');
   if(hamburger&&menu){hamburger.addEventListener('click',()=>{const open=menu.classList.toggle('open');hamburger.classList.toggle('open',open);hamburger.setAttribute('aria-expanded',String(open))});menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{menu.classList.remove('open');hamburger.classList.remove('open');hamburger.setAttribute('aria-expanded','false')}))}
