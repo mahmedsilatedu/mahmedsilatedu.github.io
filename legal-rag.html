@@ -14,7 +14,7 @@
 </script>
 <link rel="canonical" href="https://mahmedsilatedu.github.io/legal-rag.html">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Legal RAG — AI Engineering Case Study | Ahmed Silat">
+<meta property="og:title" content="Legal RAG | AI Engineering Case Study | Ahmed Silat">
 <meta property="og:description" content="How Ahmed Silat built a citation-first regulatory intelligence system with Python, hybrid retrieval, and the Claude API.">
 <meta property="og:url" content="https://mahmedsilatedu.github.io/legal-rag.html">
 <link rel="icon" type="image/svg+xml" href="silat-icon.svg">
@@ -75,7 +75,7 @@
   .case-hero::before{content:'LEGAL RAG';position:absolute;top:100px;left:28px;font:800 clamp(90px,11vw,160px)/.8 var(--display);letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1px rgba(245,245,247,.055);pointer-events:none;white-space:nowrap}
   [data-theme="light"] .case-hero::before{-webkit-text-stroke:1px rgba(10,10,18,.06)}
   .hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(64px,6vw,88px);align-items:center;position:relative;z-index:1;transition:grid-template-columns .28s ease}
-  .hero-grid.window-minimized{grid-template-columns:minmax(0,1fr)}
+  .hero-grid.window-minimized,.hero-grid.window-closed{grid-template-columns:minmax(0,1fr)}
   .eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:22px;font:500 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--blue-mid)}
   .eyebrow::before{content:'';width:8px;height:8px;background:var(--blue-mid);border-radius:50%;box-shadow:0 0 0 5px rgba(37,99,235,.09)}
   h1{max-width:100%;font:700 clamp(56px,5.35vw,82px)/.93 var(--display);letter-spacing:-.045em;margin-bottom:28px}
@@ -86,21 +86,39 @@
   .btn-primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}.btn-ghost{border-color:var(--border-mid);color:var(--ink)}
   .btn-primary:hover,.btn-ghost:hover{transform:translateY(-2px)}.btn-ghost:hover{border-color:var(--blue-mid);color:var(--blue-mid)}
 
-  .rag-console{width:100%;background:var(--surface);border:1px solid var(--border-mid);box-shadow:0 26px 70px rgba(13,36,99,.14);border-radius:9px;overflow:hidden;transition:width .28s ease,box-shadow .28s ease}
+  .rag-console{width:100%;position:relative;background:var(--surface);border:1px solid var(--border-mid);box-shadow:0 26px 70px rgba(13,36,99,.14);border-radius:9px;overflow:hidden;transition:width .28s ease,box-shadow .28s ease;will-change:transform,opacity;backface-visibility:hidden;transform:translateZ(0);contain:paint}
+  .rag-console[hidden]{display:none}
   .rag-console.is-minimized{position:fixed;top:88px;right:24px;z-index:190;width:min(340px,calc(100vw - 48px));box-shadow:0 14px 40px rgba(13,36,99,.2)}
   .rag-console.is-minimized .console-top{border-bottom:0}
+  .rag-console.is-focus{position:fixed;inset:82px 48px 36px;z-index:220;width:auto;display:flex;flex-direction:column;box-shadow:0 36px 110px rgba(0,0,0,.38)}
+  .rag-console.is-focus .console-body{min-height:0;overflow:auto;flex:1}
   .console-body[hidden]{display:none}
-  .console-top{height:42px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--surface-2)}
-  .console-dots{display:flex;align-items:center;gap:3px}.console-dot{display:block;width:7px;height:7px;border-radius:50%;background:var(--border-mid)}.console-dots>.console-dot:first-child{background:var(--blue-mid)}
+  .console-body[hidden] *::before,.console-body[hidden] *::after,.rag-console[hidden] *::before,.rag-console[hidden] *::after{content:none!important}
+  body.console-focus-open{overflow:hidden}
+  .console-backdrop{position:fixed;inset:0;z-index:210;background:rgba(4,7,14,.58);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .24s ease}
+  .console-backdrop.is-active{opacity:1;pointer-events:auto}
+  .console-backdrop[hidden]{display:none}
+  .console-top{height:42px;min-height:42px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--surface-2)}
+  .console-dots{display:flex;align-items:center;gap:4px}
   .console-control{width:16px;height:24px;display:grid;place-items:center;padding:0;border:0;background:transparent;cursor:pointer}
-  .console-control .console-dot{width:12px;height:12px;position:relative;background:var(--blue-mid);transition:transform .16s ease,background .16s ease}
-  .console-control .console-dot::after{content:'';position:absolute;left:3px;right:3px;top:5.5px;height:1px;border-radius:1px;background:#fff}
-  .console-control:hover .console-dot,.console-control:focus-visible .console-dot{background:var(--blue);transform:scale(1.08)}
+  .console-control .console-dot{display:block;width:12px;height:12px;position:relative;border-radius:50%;transition:transform .16s ease,filter .16s ease}
+  .console-control .console-dot::before,.console-control .console-dot::after{content:'';position:absolute;background:rgba(37,24,18,.72);opacity:.82}
+  .console-close .console-dot{background:#ff5f57}.console-minimize .console-dot{background:#febc2e}.console-focus .console-dot{background:#28c840}
+  .console-close .console-dot::before,.console-close .console-dot::after{left:3px;top:5.5px;width:6px;height:1px}.console-close .console-dot::before{transform:rotate(45deg)}.console-close .console-dot::after{transform:rotate(-45deg)}
+  .console-minimize .console-dot::before{display:none}.console-minimize .console-dot::after{left:3px;right:3px;top:5.5px;height:1px}
+  .console-focus .console-dot::before{left:3px;top:5.5px;width:6px;height:1px}.console-focus .console-dot::after{left:5.5px;top:3px;width:1px;height:6px}
+
+  .console-control:hover .console-dot,.console-control:focus-visible .console-dot{transform:scale(1.1);filter:saturate(1.12) brightness(.96)}
   .console-control:focus-visible{outline:1px solid var(--blue-mid);outline-offset:1px;border-radius:3px}
-  .console-id{margin-left:auto;font:500 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+  .console-control:disabled{cursor:wait;opacity:.55}
+  .console-id{margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
   .console-title-min{display:none}.rag-console.is-minimized .console-title-full{display:none}.rag-console.is-minimized .console-title-min{display:inline}.rag-console.is-minimized .console-id{margin-left:8px;margin-right:auto}
   .console-restore{display:none;align-items:center;padding:5px 8px;border:1px solid var(--border-mid);background:transparent;color:var(--ink-dim);font:500 8px var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
   .console-restore:hover,.console-restore:focus-visible{border-color:var(--blue-mid);color:var(--blue-mid);outline:none}.rag-console.is-minimized .console-restore{display:inline-flex}
+  .console-launcher{position:fixed;top:88px;right:24px;z-index:190;min-width:250px;max-width:calc(100vw - 48px);display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border-mid);border-radius:8px;background:var(--surface-2);color:var(--ink);box-shadow:0 14px 40px rgba(13,36,99,.2);cursor:pointer;will-change:transform,opacity;backface-visibility:hidden}
+  .console-launcher[hidden]{display:none}.console-launcher:hover,.console-launcher:focus-visible{border-color:var(--blue-mid);outline:none}
+  .console-launcher-icon{width:24px;height:24px;display:grid;place-items:center;border-radius:6px;background:var(--blue-mid);color:#fff;font:700 11px var(--display)}
+  .console-launcher-name{font:500 9px var(--mono);letter-spacing:.07em;text-transform:uppercase}.console-launcher-action{margin-left:auto;font:500 8px var(--mono);color:var(--blue-mid);text-transform:uppercase}
   .query-block{padding:20px;border-bottom:1px solid var(--border)}
   .query-label,.mini-label{font:500 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}
   .query{font-size:15px;line-height:1.55;font-weight:500;max-width:48ch}
@@ -188,15 +206,15 @@
 
   .reveal{opacity:0;transform:translateY(22px);transition:opacity .62s ease,transform .62s ease}.reveal.in{opacity:1;transform:none}
   @media(max-width:1100px){
-    .hero-grid,.hero-grid.window-minimized,.intro-grid,.stack-grid{grid-template-columns:1fr}.hero-grid{gap:42px}.case-hero{min-height:auto}.pipeline{grid-template-columns:repeat(3,1fr)}.pipe-step{border-bottom:1px solid var(--border)}.pipe-step:nth-child(3){border-right:0}.pipe-step:nth-child(3)::after{display:none}.pipe-step:nth-child(n+4){border-bottom:0}.retrieval-grid{grid-template-columns:1fr}.trust-grid{grid-template-columns:1fr 1fr}.hero-visual{max-width:760px}
+    .hero-grid,.hero-grid.window-minimized,.hero-grid.window-closed,.intro-grid,.stack-grid{grid-template-columns:1fr}.hero-grid{gap:42px}.case-hero{min-height:auto}.pipeline{grid-template-columns:repeat(3,1fr)}.pipe-step{border-bottom:1px solid var(--border)}.pipe-step:nth-child(3){border-right:0}.pipe-step:nth-child(3)::after{display:none}.pipe-step:nth-child(n+4){border-bottom:0}.retrieval-grid{grid-template-columns:1fr}.trust-grid{grid-template-columns:1fr 1fr}.hero-visual{max-width:760px}
   }
   @media(max-width:800px){
-    .nav-inner{padding:0 24px}.nav-links{display:none}.nav-clock{display:none}.nav-hamburger{display:flex}.case-hero{padding:112px 24px 60px}.case-hero::before{display:none}.hero-grid{grid-template-columns:1fr}.meta-grid{grid-template-columns:1fr 1fr}.section{padding:82px 24px}.section-head{align-items:flex-start;flex-direction:column}.section-note{text-align:left}.signal-strip{grid-template-columns:1fr}.pipeline{grid-template-columns:1fr 1fr}.pipe-step:nth-child(3){border-right:1px solid var(--border)}.pipe-step:nth-child(3)::after{display:grid}.pipe-step:nth-child(2n){border-right:0}.pipe-step:nth-child(2n)::after{display:none}.pipe-step:nth-child(n+4){border-bottom:1px solid var(--border)}.pipe-step:nth-last-child(-n+2){border-bottom:0}.arch-caption,.api-layout,.eval-board{grid-template-columns:1fr}.trust-grid{grid-template-columns:1fr 1fr}.stack-inner{padding:82px 24px}.footer-inner{padding:0 24px;flex-direction:column;text-align:center}
+    .nav-inner{padding:0 24px}.nav-links{display:none}.nav-clock{display:none}.nav-hamburger{display:flex}.rag-console.is-focus{inset:76px 24px 24px}.case-hero{padding:112px 24px 60px}.case-hero::before{display:none}.hero-grid{grid-template-columns:1fr}.meta-grid{grid-template-columns:1fr 1fr}.section{padding:82px 24px}.section-head{align-items:flex-start;flex-direction:column}.section-note{text-align:left}.signal-strip{grid-template-columns:1fr}.pipeline{grid-template-columns:1fr 1fr}.pipe-step:nth-child(3){border-right:1px solid var(--border)}.pipe-step:nth-child(3)::after{display:grid}.pipe-step:nth-child(2n){border-right:0}.pipe-step:nth-child(2n)::after{display:none}.pipe-step:nth-child(n+4){border-bottom:1px solid var(--border)}.pipe-step:nth-last-child(-n+2){border-bottom:0}.arch-caption,.api-layout,.eval-board{grid-template-columns:1fr}.trust-grid{grid-template-columns:1fr 1fr}.stack-inner{padding:82px 24px}.footer-inner{padding:0 24px;flex-direction:column;text-align:center}
   }
   @media(max-width:520px){
-    .nav-inner{height:60px;padding:0 18px}.rag-console.is-minimized{top:76px;left:16px;right:16px;width:auto}.nav-logo{font-size:14px;gap:7px}.nav-logo svg{width:24px}.mobile-menu{top:60px;padding:16px 20px 22px}.case-hero{padding:96px 18px 48px}h1{font-size:clamp(45px,14vw,58px)}.hero-copy{font-size:15.5px;line-height:1.65}.hero-actions{display:grid}.hero-actions a{min-height:48px}.rag-console{border-radius:6px;box-shadow:0 18px 44px rgba(13,36,99,.13)}.query-block,.console-panel{padding:15px}.console-tabs{padding:0 15px;gap:17px}.query{font-size:13.5px}.console-panel{min-height:300px}.source-row{grid-template-columns:42px 1fr}.source-score{display:none}.audit-grid{grid-template-columns:1fr}.console-status{padding:10px 15px;font-size:7.5px}.meta-grid{grid-template-columns:1fr;margin-top:34px}.section{padding:68px 18px}.section-head{margin-bottom:36px}.section-title{font-size:36px}.lead{font-size:29px}.signal{padding:25px}.pipeline{grid-template-columns:1fr}.pipe-step{min-height:0;gap:0;border-right:0!important;border-bottom:1px solid var(--border)!important}.pipe-step:last-child{border-bottom:0!important}.pipe-step::after{display:none!important}.pipe-tech{margin-top:22px}.arch-caption{display:block}.caption-block+ .caption-block{border-top:1px solid var(--border)}.code-head{padding:0 14px}pre{padding:20px 14px;font-size:10.5px}.api-decisions,.retrieval-story,.rank-lab,.eval-panel{padding:26px 22px}.rank-item{grid-template-columns:23px 1fr 48px;padding:11px}.trust-grid{grid-template-columns:1fr}.trust-card{min-height:0;padding:26px}.trust-num{margin-bottom:20px}.stack-inner{padding:68px 18px}.stack-list{grid-template-columns:1fr}.stack-item{border-right:0!important;border-bottom:1px solid rgba(255,255,255,.12)!important}.stack-item:last-child{border-bottom:0!important}.next-project{padding:74px 18px 82px}.footer-inner{padding:0 18px}.footer-links{justify-content:center;flex-wrap:wrap;gap:12px 20px}
+    .nav-inner{height:60px;padding:0 18px}.rag-console.is-minimized{top:76px;left:16px;right:16px;width:auto}.rag-console.is-focus{inset:72px 12px 12px}.console-launcher{top:76px;left:16px;right:16px;min-width:0;max-width:none}.nav-logo{font-size:14px;gap:7px}.nav-logo svg{width:24px}.mobile-menu{top:60px;padding:16px 20px 22px}.case-hero{padding:96px 18px 48px}h1{font-size:clamp(45px,14vw,58px)}.hero-copy{font-size:15.5px;line-height:1.65}.hero-actions{display:grid}.hero-actions a{min-height:48px}.rag-console{border-radius:6px;box-shadow:0 18px 44px rgba(13,36,99,.13)}.query-block,.console-panel{padding:15px}.console-tabs{padding:0 15px;gap:17px}.query{font-size:13.5px}.console-panel{min-height:300px}.source-row{grid-template-columns:42px 1fr}.source-score{display:none}.audit-grid{grid-template-columns:1fr}.console-status{padding:10px 15px;font-size:7.5px}.meta-grid{grid-template-columns:1fr;margin-top:34px}.section{padding:68px 18px}.section-head{margin-bottom:36px}.section-title{font-size:36px}.lead{font-size:29px}.signal{padding:25px}.pipeline{grid-template-columns:1fr}.pipe-step{min-height:0;gap:0;border-right:0!important;border-bottom:1px solid var(--border)!important}.pipe-step:last-child{border-bottom:0!important}.pipe-step::after{display:none!important}.pipe-tech{margin-top:22px}.arch-caption{display:block}.caption-block+ .caption-block{border-top:1px solid var(--border)}.code-head{padding:0 14px}pre{padding:20px 14px;font-size:10.5px}.api-decisions,.retrieval-story,.rank-lab,.eval-panel{padding:26px 22px}.rank-item{grid-template-columns:23px 1fr 48px;padding:11px}.trust-grid{grid-template-columns:1fr}.trust-card{min-height:0;padding:26px}.trust-num{margin-bottom:20px}.stack-inner{padding:68px 18px}.stack-list{grid-template-columns:1fr}.stack-item{border-right:0!important;border-bottom:1px solid rgba(255,255,255,.12)!important}.stack-item:last-child{border-bottom:0!important}.next-project{padding:74px 18px 82px}.footer-inner{padding:0 18px}.footer-links{justify-content:center;flex-wrap:wrap;gap:12px 20px}
   }
-  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}.scroll-progress{display:none}}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}.scroll-progress{display:none}.console-backdrop{transition:none}}
 </style>
 </head>
 <body>
@@ -235,11 +253,12 @@
     <div>
       <p class="eyebrow">AI engineering case study</p>
       <h1>Legal<br><span class="accent">RAG.</span></h1>
-      <p class="hero-copy">A jurisdiction-aware regulatory intelligence system I built with Python and the Claude API—turning fragmented global rules into grounded, traceable answers for compliance research.</p>
+      <p class="hero-copy">A jurisdiction-aware regulatory intelligence system I built with Python and the Claude API. It turns fragmented global rules into grounded, traceable answers for compliance research.</p>
       <div class="hero-actions"><a href="#architecture" class="btn-primary">Explore architecture <span aria-hidden="true">↓</span></a><a href="#api" class="btn-ghost">Inspect the API</a></div>
     </div>
+    <div class="console-backdrop" id="consoleBackdrop" hidden aria-hidden="true"></div>
     <div class="rag-console reveal" id="ragConsole" role="region" aria-label="Regulatory research interface">
-      <div class="console-top"><div class="console-dots" aria-label="Window controls"><span class="console-dot" aria-hidden="true"></span><button class="console-control" id="consoleMinimize" type="button" aria-label="Minimize regulatory research window" aria-controls="ragConsoleBody" aria-expanded="true"><span class="console-dot" aria-hidden="true"></span></button><span class="console-dot" aria-hidden="true"></span></div><span class="console-id"><span class="console-title-full">Regulatory intelligence / Research mode</span><span class="console-title-min">Legal RAG — minimized</span></span><button class="console-restore" id="consoleRestore" type="button" hidden>Restore ↗</button></div>
+      <div class="console-top"><div class="console-dots" aria-label="macOS window controls"><button class="console-control console-close" id="consoleClose" type="button" aria-label="Close regulatory research window" title="Close"><span class="console-dot" aria-hidden="true"></span></button><button class="console-control console-minimize" id="consoleMinimize" type="button" aria-label="Minimize regulatory research window" aria-controls="ragConsoleBody" aria-expanded="true" title="Minimize"><span class="console-dot" aria-hidden="true"></span></button><button class="console-control console-focus" id="consoleFocus" type="button" aria-label="Enter focus mode" aria-pressed="false" title="Enter focus mode"><span class="console-dot" aria-hidden="true"></span></button></div><span class="console-id"><span class="console-title-full">Regulatory intelligence / Research mode</span><span class="console-title-min">Legal RAG / Minimized</span></span><button class="console-restore" id="consoleRestore" type="button" hidden>Restore ↗</button></div>
       <div class="console-body" id="ragConsoleBody">
       <div class="query-block"><p class="query-label">Research question</p><p class="query">What disclosures apply to virtual-asset marketing across selected jurisdictions?</p><div class="query-meta"><span class="chip live">Grounded mode</span><span class="chip">UAE</span><span class="chip">European Union</span><span class="chip">Singapore</span></div></div>
       <div class="console-tabs" role="tablist" aria-label="Research result views"><button class="console-tab active" role="tab" aria-selected="true" data-panel="answer">Answer</button><button class="console-tab" role="tab" aria-selected="false" data-panel="sources">Sources</button><button class="console-tab" role="tab" aria-selected="false" data-panel="audit">Audit</button></div>
@@ -249,14 +268,15 @@
       <div class="console-status"><span class="status-live">● Context assembled</span><span>Grounded in retrieved regulatory sources</span></div>
       </div>
     </div>
+    <button class="console-launcher" id="consoleLauncher" type="button" hidden aria-label="Reopen Legal RAG"><span class="console-launcher-icon">R</span><span class="console-launcher-name">Legal RAG</span><span class="console-launcher-action">Open ↗</span></button>
   </div>
   <div class="meta-grid reveal"><div class="meta-item"><p class="meta-label">Role</p><p class="meta-value">AI Engineer · End-to-end system design</p></div><div class="meta-item"><p class="meta-label">Context</p><p class="meta-value">Global regulatory research at CryptoCompliance.AI</p></div><div class="meta-item"><p class="meta-label">Core stack</p><p class="meta-value">Python, Claude API, FastAPI, vector search</p></div><div class="meta-item"><p class="meta-label">Engineering focus</p><p class="meta-value">Retrieval quality, citations, temporal accuracy</p></div></div>
 </header>
 
 <main id="main">
   <section class="section" id="overview">
-    <div class="section-head"><div><span class="section-num">01 / The system</span><h2 class="section-title">Research, not guesswork.</h2></div><p class="section-note">The product treats a legal answer as an evidence pipeline—not a single model call.</p></div>
-    <div class="intro-grid reveal"><p class="lead">Global regulation is fragmented by jurisdiction, regulator, document type, and time. The RAG makes that complexity searchable.</p><div class="body-copy"><p>I designed the system to ingest regulatory material from multiple markets, preserve the legal metadata that gives each passage meaning, and retrieve the right evidence before Claude writes an answer.</p><p>The key engineering decision was to make <strong>jurisdiction, regulator, instrument, publication date, and effective date</strong> first-class retrieval fields. That prevents a semantically similar rule from the wrong market—or the wrong point in time—from silently contaminating an answer.</p></div></div>
+    <div class="section-head"><div><span class="section-num">01 / The system</span><h2 class="section-title">Research, not guesswork.</h2></div><p class="section-note">The product treats a legal answer as an evidence pipeline rather than a single model call.</p></div>
+    <div class="intro-grid reveal"><p class="lead">Global regulation is fragmented by jurisdiction, regulator, document type, and time. The RAG makes that complexity searchable.</p><div class="body-copy"><p>I designed the system to ingest regulatory material from multiple markets, preserve the legal metadata that gives each passage meaning, and retrieve the right evidence before Claude writes an answer.</p><p>The key engineering decision was to make <strong>jurisdiction, regulator, instrument, publication date, and effective date</strong> first-class retrieval fields. That prevents a semantically similar rule from the wrong market or the wrong point in time from silently contaminating an answer.</p></div></div>
     <div class="signal-strip reveal"><article class="signal"><p class="signal-mark">01</p><h3>Evidence before generation</h3><p>Claude receives a deliberately assembled evidence pack, not unrestricted access to the entire corpus.</p></article><article class="signal"><p class="signal-mark">02</p><h3>Legal-aware retrieval</h3><p>Semantic similarity is combined with exact jurisdiction filters, lexical signals, and re-ranking.</p></article><article class="signal"><p class="signal-mark">03</p><h3>Traceable outputs</h3><p>Every material claim is designed to map back to a source, passage, and document version.</p></article></div>
   </section>
 
@@ -269,7 +289,7 @@
       <article class="pipe-step"><p class="pipe-num">Stage 04</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><circle cx="14" cy="14" r="8" stroke="currentColor" stroke-width="1.5"/><path d="m20 20 7 7M10 11h8M10 15h6M10 19h4" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Hybrid retrieval</h3><p>Combine dense vector search, keyword relevance, metadata constraints, and document diversity.</p><span class="pipe-tech">Embeddings · BM25 · Filters</span></article>
       <article class="pipe-step"><p class="pipe-num">Stage 05</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><path d="M16 4v24M8 9h16M7 9l-4 8h8zM25 9l-4 8h8zM10 26h12" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Claude synthesis</h3><p>Build a bounded evidence pack and ask Claude to compare, qualify, cite, and abstain when evidence is weak.</p><span class="pipe-tech">Claude API · Structured output</span></article>
       <article class="pipe-step"><p class="pipe-num">Stage 06</p><div class="pipe-icon"><svg viewBox="0 0 32 32" fill="none"><path d="M6 5h20v22H6zM10 10h12M10 15h12M10 20h7" stroke="currentColor" stroke-width="1.5"/><path d="m20 21 2 2 4-5" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Answer & audit</h3><p>Return structured conclusions, inline citations, source excerpts, and review metadata through the API.</p><span class="pipe-tech">FastAPI · Schemas · Logs</span></article>
-    </div><div class="arch-caption"><div class="caption-block"><h3>The model is one layer—not the system.</h3><p>Retrieval, filtering, context construction, validation, and observability do most of the reliability work around the LLM.</p></div><div class="caption-block"><h3>Every stage is debuggable.</h3><p>A weak answer can be traced to ingestion, metadata, retrieval, ranking, prompting, or citation mapping instead of being treated as an opaque failure.</p></div></div></div>
+    </div><div class="arch-caption"><div class="caption-block"><h3>The model is one layer, not the system.</h3><p>Retrieval, filtering, context construction, validation, and observability do most of the reliability work around the LLM.</p></div><div class="caption-block"><h3>Every stage is debuggable.</h3><p>A weak answer can be traced to ingestion, metadata, retrieval, ranking, prompting, or citation mapping instead of being treated as an opaque failure.</p></div></div></div>
   </section>
 
   <section class="section" id="api">
@@ -298,7 +318,7 @@
 }</pre></div><div class="api-decisions">
       <article class="decision"><span class="decision-num">01</span><div><h3>Typed inputs</h3><p>Pydantic validation rejects ambiguous jurisdiction codes, invalid dates, and unsupported answer modes before retrieval begins.</p></div></article>
       <article class="decision"><span class="decision-num">02</span><div><h3>Bounded model calls</h3><p>The service sends Claude only ranked evidence and explicit output rules, with timeouts, retry policy, and token budgets controlled in Python.</p></div></article>
-      <article class="decision"><span class="decision-num">03</span><div><h3>Structured responses</h3><p>Applications receive stable fields for findings, sources, confidence signals, and review flags—not a blob of unpredictable prose.</p></div></article>
+      <article class="decision"><span class="decision-num">03</span><div><h3>Structured responses</h3><p>Applications receive stable fields for findings, sources, confidence signals, and review flags instead of a blob of unpredictable prose.</p></div></article>
       <article class="decision"><span class="decision-num">04</span><div><h3>Operational visibility</h3><p>Request IDs connect API latency, retrieval traces, model usage, citations, and failures across the full execution path.</p></div></article>
     </div></div>
   </section>
@@ -321,11 +341,11 @@
 
   <section class="section" id="evaluation">
     <div class="section-head"><div><span class="section-num">06 / Evaluation</span><h2 class="section-title">Quality at every layer.</h2></div><p class="section-note">RAG evaluation separates retrieval failures from answer failures so improvements are targeted.</p></div>
-    <div class="eval-board reveal"><article class="eval-panel"><h3>Retrieval evaluation</h3><p>A curated set of regulatory questions tests whether the correct authority and passage reach the context window across markets and document types.</p><div class="metric-list"><div class="metric"><span class="metric-name">Relevant passage found in top results</span><span class="metric-type">Recall@K</span></div><div class="metric"><span class="metric-name">Correct authority ranked early</span><span class="metric-type">MRR</span></div><div class="metric"><span class="metric-name">Results cover required jurisdictions</span><span class="metric-type">Coverage</span></div><div class="metric"><span class="metric-name">Superseded documents excluded</span><span class="metric-type">Temporal</span></div></div></article><article class="eval-panel"><h3>Answer evaluation</h3><p>Generated answers are reviewed against the retrieved evidence and the actual research intent—not scored only for fluency.</p><div class="failure-list"><div class="failure"><div class="failure-head"><span>Grounding</span><span class="failure-status">Evidence check</span></div><p>Does every conclusion follow from a cited passage?</p></div><div class="failure"><div class="failure-head"><span>Completeness</span><span class="failure-status">Scope check</span></div><p>Were all requested jurisdictions and sub-questions addressed?</p></div><div class="failure"><div class="failure-head"><span>Citation precision</span><span class="failure-status">Attribution</span></div><p>Does each citation support the exact sentence it follows?</p></div><div class="failure"><div class="failure-head"><span>Calibrated uncertainty</span><span class="failure-status">Safety</span></div><p>Does the answer qualify conflict, ambiguity, and missing evidence?</p></div></div></article></div>
+    <div class="eval-board reveal"><article class="eval-panel"><h3>Retrieval evaluation</h3><p>A curated set of regulatory questions tests whether the correct authority and passage reach the context window across markets and document types.</p><div class="metric-list"><div class="metric"><span class="metric-name">Relevant passage found in top results</span><span class="metric-type">Recall@K</span></div><div class="metric"><span class="metric-name">Correct authority ranked early</span><span class="metric-type">MRR</span></div><div class="metric"><span class="metric-name">Results cover required jurisdictions</span><span class="metric-type">Coverage</span></div><div class="metric"><span class="metric-name">Superseded documents excluded</span><span class="metric-type">Temporal</span></div></div></article><article class="eval-panel"><h3>Answer evaluation</h3><p>Generated answers are reviewed against the retrieved evidence and the actual research intent. Fluency alone is not the score.</p><div class="failure-list"><div class="failure"><div class="failure-head"><span>Grounding</span><span class="failure-status">Evidence check</span></div><p>Does every conclusion follow from a cited passage?</p></div><div class="failure"><div class="failure-head"><span>Completeness</span><span class="failure-status">Scope check</span></div><p>Were all requested jurisdictions and sub-questions addressed?</p></div><div class="failure"><div class="failure-head"><span>Citation precision</span><span class="failure-status">Attribution</span></div><p>Does each citation support the exact sentence it follows?</p></div><div class="failure"><div class="failure-head"><span>Calibrated uncertainty</span><span class="failure-status">Safety</span></div><p>Does the answer qualify conflict, ambiguity, and missing evidence?</p></div></div></article></div>
   </section>
 </main>
 
-<section class="stack-band" aria-labelledby="stack-title"><div class="stack-inner"><div class="section-head"><div><span class="section-num">07 / Engineering depth</span><h2 class="section-title" id="stack-title">What I owned.</h2></div><p class="section-note">From data ingestion to the API boundary and the behavior of the final answer.</p></div><div class="stack-grid reveal"><div><p class="stack-lead">I built the bridge between <span>regulatory data</span> and a reliable AI product.</p><p class="stack-copy">The work combined backend engineering, information retrieval, prompt and context design, data modeling, evaluation, and production safeguards. The result was not a chatbot skin—it was a domain-specific research system with an LLM inside it.</p></div><div class="stack-list"><div class="stack-item"><span>Language</span><strong>Python</strong></div><div class="stack-item"><span>LLM</span><strong>Claude API</strong></div><div class="stack-item"><span>Service</span><strong>FastAPI + Pydantic</strong></div><div class="stack-item"><span>Retrieval</span><strong>Hybrid search + re-ranking</strong></div><div class="stack-item"><span>Data</span><strong>Embeddings + legal metadata</strong></div><div class="stack-item"><span>Reliability</span><strong>Evaluation + observability</strong></div></div></div></div></section>
+<section class="stack-band" aria-labelledby="stack-title"><div class="stack-inner"><div class="section-head"><div><span class="section-num">07 / Engineering depth</span><h2 class="section-title" id="stack-title">What I owned.</h2></div><p class="section-note">From data ingestion to the API boundary and the behavior of the final answer.</p></div><div class="stack-grid reveal"><div><p class="stack-lead">I built the bridge between <span>regulatory data</span> and a reliable AI product.</p><p class="stack-copy">The work combined backend engineering, information retrieval, prompt and context design, data modeling, evaluation, and production safeguards. The result was not a chatbot skin. It was a domain-specific research system with an LLM inside it.</p></div><div class="stack-list"><div class="stack-item"><span>Language</span><strong>Python</strong></div><div class="stack-item"><span>LLM</span><strong>Claude API</strong></div><div class="stack-item"><span>Service</span><strong>FastAPI + Pydantic</strong></div><div class="stack-item"><span>Retrieval</span><strong>Hybrid search + re-ranking</strong></div><div class="stack-item"><span>Data</span><strong>Embeddings + legal metadata</strong></div><div class="stack-item"><span>Reliability</span><strong>Evaluation + observability</strong></div></div></div></div></section>
 
 <section class="next-project">
   <h2>Back to the<br><span class="accent">portfolio.</span></h2>
@@ -362,10 +382,45 @@
 
   const consoleWindow=document.getElementById('ragConsole');
   const consoleBody=document.getElementById('ragConsoleBody');
+  const closeButton=document.getElementById('consoleClose');
   const minimizeButton=document.getElementById('consoleMinimize');
+  const focusButton=document.getElementById('consoleFocus');
   const restoreButton=document.getElementById('consoleRestore');
+  const launcherButton=document.getElementById('consoleLauncher');
+  const consoleBackdrop=document.getElementById('consoleBackdrop');
   const heroGrid=document.querySelector('.hero-grid');
-  function setConsoleMinimized(minimized){
+  const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const consoleControls=[closeButton,minimizeButton,focusButton,restoreButton].filter(Boolean);
+  let consoleAnimating=false;
+  let backdropTimer;
+
+  function setControlsDisabled(disabled){
+    consoleControls.forEach(control=>control.disabled=disabled);
+  }
+
+  function setBackdrop(active){
+    if(!consoleBackdrop)return;
+    clearTimeout(backdropTimer);
+    if(active){
+      consoleBackdrop.hidden=false;
+      requestAnimationFrame(()=>consoleBackdrop.classList.add('is-active'));
+    }else{
+      consoleBackdrop.classList.remove('is-active');
+      backdropTimer=setTimeout(()=>{if(!consoleBackdrop.classList.contains('is-active'))consoleBackdrop.hidden=true},reducedMotion.matches?0:240);
+    }
+  }
+
+  function setFocusState(focused){
+    if(!consoleWindow||!focusButton)return;
+    consoleWindow.classList.toggle('is-focus',focused);
+    document.body.classList.toggle('console-focus-open',focused);
+    focusButton.setAttribute('aria-pressed',String(focused));
+    focusButton.setAttribute('aria-label',focused?'Exit focus mode':'Enter focus mode');
+    focusButton.title=focused?'Exit focus mode':'Enter focus mode';
+    setBackdrop(focused);
+  }
+
+  function applyMinimizedState(minimized){
     if(!consoleWindow||!consoleBody||!minimizeButton||!restoreButton)return;
     consoleWindow.classList.toggle('is-minimized',minimized);
     heroGrid?.classList.toggle('window-minimized',minimized);
@@ -374,10 +429,195 @@
     restoreButton.hidden=!minimized;
     minimizeButton.setAttribute('aria-expanded',String(!minimized));
     minimizeButton.setAttribute('aria-label',minimized?'Restore regulatory research window':'Minimize regulatory research window');
-    if(!minimized)requestAnimationFrame(()=>minimizeButton.focus());
+    minimizeButton.title=minimized?'Restore':'Minimize';
   }
-  minimizeButton?.addEventListener('click',()=>setConsoleMinimized(!consoleWindow.classList.contains('is-minimized')));
-  restoreButton?.addEventListener('click',()=>setConsoleMinimized(false));
+
+  function getDockRect(){
+    const inset=innerWidth<=520?16:24;
+    const top=innerWidth<=520?76:88;
+    const width=Math.min(340,innerWidth-inset*2);
+    return{left:innerWidth-inset-width,right:innerWidth-inset,top,width,height:44};
+  }
+
+  function getLauncherRect(){
+    const dock=getDockRect();
+    const width=Math.min(250,dock.width);
+    return{left:dock.right-width,right:dock.right,top:dock.top,width,height:42};
+  }
+
+  async function playMotion(element,keyframes,options){
+    if(reducedMotion.matches||!element?.animate)return;
+    const animation=element.animate(keyframes,{fill:'both',...options});
+    await animation.finished.catch(()=>{});
+    animation.cancel();
+  }
+
+  async function genieMinimize(){
+    if(consoleAnimating||!consoleWindow)return;
+    if(consoleWindow.classList.contains('is-minimized')){await restoreFromDock();return}
+    consoleAnimating=true;
+    setControlsDisabled(true);
+    const start=consoleWindow.getBoundingClientRect();
+    const target=getDockRect();
+    const dx=target.right-start.right;
+    const dy=target.top-start.top;
+    const sx=target.width/start.width;
+    const sy=target.height/start.height;
+    consoleWindow.style.transformOrigin='top right';
+    await playMotion(consoleWindow,[
+      {transform:'translate3d(0,0,0) scale3d(1,1,1)',opacity:1},
+      {offset:.38,transform:`translate3d(${dx*.14}px,${dy*.12}px,0) scale3d(${1+(sx-1)*.18},${1+(sy-1)*.38},1) skewY(-.6deg)`,opacity:1},
+      {offset:.78,transform:`translate3d(${dx*.72}px,${dy*.7}px,0) scale3d(${1+(sx-1)*.7},${1+(sy-1)*.84},1) skewY(-.35deg)`,opacity:.98},
+      {transform:`translate3d(${dx}px,${dy}px,0) scale3d(${sx},${sy},1)`,opacity:1}
+    ],{duration:460,easing:'cubic-bezier(.22,.8,.2,1)'});
+    setFocusState(false);
+    applyMinimizedState(true);
+    consoleWindow.style.transformOrigin='';
+    setControlsDisabled(false);
+    consoleAnimating=false;
+  }
+
+  async function restoreFromDock(){
+    if(consoleAnimating||!consoleWindow?.classList.contains('is-minimized'))return;
+    consoleAnimating=true;
+    setControlsDisabled(true);
+    const start=consoleWindow.getBoundingClientRect();
+    window.scrollTo({top:0,behavior:'auto'});
+    applyMinimizedState(false);
+    const end=consoleWindow.getBoundingClientRect();
+    const dx=start.right-end.right;
+    const dy=start.top-end.top;
+    const sx=start.width/end.width;
+    const sy=start.height/end.height;
+    consoleWindow.style.transformOrigin='top right';
+    await playMotion(consoleWindow,[
+      {transform:`translate3d(${dx}px,${dy}px,0) scale3d(${sx},${sy},1)`,opacity:1},
+      {offset:.32,transform:`translate3d(${dx*.72}px,${dy*.7}px,0) scale3d(${sx+(1-sx)*.3},${sy+(1-sy)*.2},1) skewY(-.35deg)`,opacity:.98},
+      {offset:.76,transform:`translate3d(${dx*.12}px,${dy*.1}px,0) scale3d(.96,.92,1) skewY(-.25deg)`,opacity:1},
+      {transform:'translate3d(0,0,0) scale3d(1,1,1)',opacity:1}
+    ],{duration:430,easing:'cubic-bezier(.2,.78,.18,1)'});
+    consoleWindow.style.transformOrigin='';
+    setControlsDisabled(false);
+    consoleAnimating=false;
+    minimizeButton?.focus();
+  }
+
+  async function closeConsole(){
+    if(consoleAnimating||!consoleWindow||!launcherButton)return;
+    consoleAnimating=true;
+    setControlsDisabled(true);
+    const start=consoleWindow.getBoundingClientRect();
+    const target=getLauncherRect();
+    const dx=target.right-start.right;
+    const dy=target.top-start.top;
+    const sx=target.width/start.width;
+    const sy=target.height/start.height;
+    consoleWindow.style.transformOrigin='top right';
+    await playMotion(consoleWindow,[
+      {transform:'translate3d(0,0,0) scale3d(1,1,1)',opacity:1},
+      {offset:.7,transform:`translate3d(${dx*.76}px,${dy*.7}px,0) scale3d(${1+(sx-1)*.74},${1+(sy-1)*.78},1)`,opacity:.48},
+      {transform:`translate3d(${dx}px,${dy}px,0) scale3d(${sx},${sy},1)`,opacity:0}
+    ],{duration:300,easing:'cubic-bezier(.3,.7,.2,1)'});
+    setFocusState(false);
+    applyMinimizedState(false);
+    heroGrid?.classList.add('window-closed');
+    consoleWindow.hidden=true;
+    launcherButton.hidden=false;
+    consoleWindow.style.transformOrigin='';
+    await playMotion(launcherButton,[
+      {transform:'translate3d(0,-6px,0) scale(.96)',opacity:0},
+      {offset:.62,transform:'translate3d(0,1px,0) scale(1.01)',opacity:1},
+      {transform:'translate3d(0,0,0) scale(1)',opacity:1}
+    ],{duration:280,easing:'cubic-bezier(.2,.8,.2,1)'});
+    setControlsDisabled(false);
+    consoleAnimating=false;
+    launcherButton.focus();
+  }
+
+  async function reopenConsole(){
+    if(consoleAnimating||!consoleWindow||!launcherButton)return;
+    consoleAnimating=true;
+    const start=launcherButton.getBoundingClientRect();
+    launcherButton.hidden=true;
+    window.scrollTo({top:0,behavior:'auto'});
+    heroGrid?.classList.remove('window-closed');
+    consoleWindow.hidden=false;
+    applyMinimizedState(false);
+    const end=consoleWindow.getBoundingClientRect();
+    const dx=start.right-end.right;
+    const dy=start.top-end.top;
+    const sx=start.width/end.width;
+    const sy=start.height/end.height;
+    consoleWindow.style.transformOrigin='top right';
+    await playMotion(consoleWindow,[
+      {transform:`translate3d(${dx}px,${dy}px,0) scale3d(${sx},${sy},1)`,opacity:0},
+      {offset:.66,transform:`translate3d(${dx*.18}px,${dy*.16}px,0) scale3d(.91,.82,1)`,opacity:1},
+      {transform:'translate3d(0,0,0) scale3d(1,1,1)',opacity:1}
+    ],{duration:360,easing:'cubic-bezier(.2,.8,.2,1)'});
+    consoleWindow.style.transformOrigin='';
+    consoleAnimating=false;
+    closeButton?.focus();
+  }
+
+  async function enterFocusMode(){
+    if(consoleAnimating||!consoleWindow)return;
+    if(consoleWindow.classList.contains('is-minimized'))await restoreFromDock();
+    if(consoleAnimating)return;
+    consoleAnimating=true;
+    setControlsDisabled(true);
+    const start=consoleWindow.getBoundingClientRect();
+    setFocusState(true);
+    const end=consoleWindow.getBoundingClientRect();
+    const dx=start.left-end.left;
+    const dy=start.top-end.top;
+    const sx=start.width/end.width;
+    const sy=start.height/end.height;
+    consoleWindow.style.transformOrigin='top left';
+    await playMotion(consoleWindow,[
+      {transform:`translate3d(${dx}px,${dy}px,0) scale3d(${sx},${sy},1)`,opacity:.96},
+      {offset:.78,transform:'translate3d(0,0,0) scale3d(1.008,1.008,1)',opacity:1},
+      {transform:'translate3d(0,0,0) scale3d(1,1,1)',opacity:1}
+    ],{duration:360,easing:'cubic-bezier(.2,.78,.18,1)'});
+    consoleWindow.style.transformOrigin='';
+    setControlsDisabled(false);
+    consoleAnimating=false;
+    focusButton?.focus();
+  }
+
+  async function exitFocusMode(){
+    if(consoleAnimating||!consoleWindow?.classList.contains('is-focus'))return;
+    consoleAnimating=true;
+    setControlsDisabled(true);
+    const start=consoleWindow.getBoundingClientRect();
+    setFocusState(false);
+    const end=consoleWindow.getBoundingClientRect();
+    const dx=start.left-end.left;
+    const dy=start.top-end.top;
+    const sx=start.width/end.width;
+    const sy=start.height/end.height;
+    consoleWindow.style.transformOrigin='top left';
+    await playMotion(consoleWindow,[
+      {transform:`translate3d(${dx}px,${dy}px,0) scale3d(${sx},${sy},1)`,opacity:1},
+      {transform:'translate3d(0,0,0) scale3d(1,1,1)',opacity:1}
+    ],{duration:300,easing:'cubic-bezier(.24,.7,.2,1)'});
+    consoleWindow.style.transformOrigin='';
+    setControlsDisabled(false);
+    consoleAnimating=false;
+    focusButton?.focus();
+  }
+
+  async function toggleFocusMode(){
+    if(consoleWindow?.classList.contains('is-focus'))await exitFocusMode();
+    else await enterFocusMode();
+  }
+
+  closeButton?.addEventListener('click',closeConsole);
+  minimizeButton?.addEventListener('click',()=>consoleWindow.classList.contains('is-minimized')?restoreFromDock():genieMinimize());
+  restoreButton?.addEventListener('click',restoreFromDock);
+  focusButton?.addEventListener('click',toggleFocusMode);
+  launcherButton?.addEventListener('click',reopenConsole);
+  consoleBackdrop?.addEventListener('click',exitFocusMode);
+  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&consoleWindow?.classList.contains('is-focus'))exitFocusMode()});
 
   const reveal=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('in');reveal.unobserve(entry.target)}}),{threshold:.1});
   document.querySelectorAll('.reveal').forEach(el=>reveal.observe(el));
