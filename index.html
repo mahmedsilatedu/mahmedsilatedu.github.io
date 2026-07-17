@@ -78,6 +78,7 @@
   .hero{min-height:100vh;display:flex;align-items:center;max-width:1240px;margin:0 auto;padding:140px 40px 80px;position:relative;z-index:2;}
   .hero-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:64px;align-items:center;width:100%;}
   .hero-col{position:relative;}
+  .hero-grid > .hero-col:last-child{transform:translateY(-32px);}
   .hero-ghost{position:absolute;top:-64px;left:-6px;font-family:var(--display);font-weight:800;font-size:clamp(90px,15vw,220px);letter-spacing:-0.05em;color:transparent;-webkit-text-stroke:1px rgba(245,245,247,0.06);line-height:1;z-index:0;pointer-events:none;user-select:none;white-space:nowrap;}
   [data-theme="light"] .hero-ghost{-webkit-text-stroke:1px rgba(10,10,18,0.06);}
   .hero-eyebrow{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mint);margin-bottom:28px;position:relative;z-index:1;}
@@ -107,10 +108,16 @@
   .terminal-dot:nth-child(2){background:#ffd166;opacity:0.7;}
   .terminal-dot:nth-child(3){background:var(--mint);opacity:0.7;}
   .terminal-title{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);margin-left:8px;letter-spacing:0.04em;}
-  .terminal-body{padding:24px 22px;font-family:var(--mono);font-size:13px;line-height:1.85;min-height:230px;color:var(--ink-dim);}
+  .terminal-body{padding:22px;font-family:var(--mono);font-size:12.5px;line-height:1.72;min-height:410px;color:var(--ink-dim);white-space:pre-wrap;overflow-wrap:anywhere;}
   .terminal-prompt{color:var(--mint);}
+  .terminal-output{color:var(--ink-dim);}
   .terminal-cursor{display:inline-block;width:7px;height:14px;background:var(--mint);vertical-align:-2px;animation:blink 1s steps(1) infinite;}
   @keyframes blink{50%{opacity:0;}}
+
+  @media (prefers-reduced-motion:reduce){
+    .terminal{opacity:1;animation:none;}
+    .terminal-cursor{animation:none;}
+  }
 
   /* SCROLL CUE */
   .scroll-cue{position:absolute;bottom:36px;left:40px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint);z-index:1;}
@@ -196,6 +203,7 @@
 
   @media (max-width:1024px){
     .hero-grid{grid-template-columns:1fr;}
+    .hero-grid > .hero-col:last-child{transform:none;}
     .hero-ghost{display:none;}
     .skills-grid{grid-template-columns:1fr 1fr;}
   }
@@ -212,6 +220,7 @@
     .footer-inner{flex-direction:column;text-align:center;}
     .scroll-cue{display:none;}
     .project-sig{display:none;}
+    .terminal-body{padding:20px 17px;font-size:11.5px;line-height:1.68;min-height:390px;}
   }
 </style>
 </head>
@@ -277,9 +286,9 @@
       <div class="terminal">
         <div class="terminal-bar">
           <span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span>
-          <span class="terminal-title">ahmed@silat ~ zsh</span>
+          <span class="terminal-title">ahmed@portfolio / engineering-snapshot</span>
         </div>
-        <div class="terminal-body" id="terminalBody"></div>
+        <div class="terminal-body" id="terminalBody" role="region" aria-label="Ahmed Silat engineering profile and core technology stack"></div>
       </div>
     </div>
   </div>
@@ -730,52 +739,90 @@
   function setupTerminal() {
     const el = document.getElementById('terminalBody');
     if (!el) return;
+
+    const dot = '\u00b7';
     const lines = [
-      { type: 'cmd', text: 'whoami' },
-      { type: 'out', text: 'ahmed_silat — full-stack ai engineer' },
-      { type: 'out', text: 'based in dubai, uae' },
+      { type: 'cmd', text: 'profile' },
+      { type: 'out', text: `full-stack AI engineer ${dot} dubai, uae` },
       { type: 'gap' },
-      { type: 'cmd', text: 'stack --list' },
-      { type: 'out', text: 'fastapi · vertex_ai · n8n' },
-      { type: 'out', text: 'timescaledb · supabase · redis' },
+      { type: 'cmd', text: 'stack --core' },
+      { type: 'out', text: `backend   Python ${dot} FastAPI ${dot} Pydantic` },
+      { type: 'out', text: `agents    Gemini ${dot} Claude ${dot} OpenRouter ${dot} Vertex AI ${dot} n8n` },
+      { type: 'out', text: `data      Redis ${dot} TimescaleDB ${dot} Supabase ${dot} SQLite` },
+      { type: 'out', text: `web       React ${dot} Playwright ${dot} HTML ${dot} CSS` },
+      { type: 'out', text: `delivery  SSE ${dot} Railway ${dot} Google Cloud ${dot} GitHub Actions ${dot} Render` },
+      { type: 'gap' },
+      { type: 'cmd', text: 'proof --recent' },
+      { type: 'out', text: '30+ AI automation workflows' },
+      { type: 'out', text: `citation-first legal RAG ${dot} hybrid retrieval` },
+      { type: 'out', text: `agentic trip planner ${dot} live SSE streaming` },
+      { type: 'out', text: `ML ranking with XGBoost ${dot} Random Forest` },
       { type: 'gap' },
       { type: 'cmd', text: 'status' },
-      { type: 'out', text: '> shipping agentic AI systems' },
-      { type: 'out', text: '> open to new opportunities' }
+      { type: 'out', text: 'open to full-stack AI engineering roles' }
     ];
+
+    const escapeHtml = (text) => text.replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    })[char]);
+
+    const lineHtml = (line) => {
+      if (line.type === 'gap') return '<br>';
+      if (line.type === 'cmd') return `<span class="terminal-prompt">$ </span>${escapeHtml(line.text)}<br>`;
+      return `<span class="terminal-output">${escapeHtml(line.text)}</span><br>`;
+    };
+
+    const renderAll = () => {
+      el.innerHTML = lines.map(lineHtml).join('') + '<span class="terminal-cursor"></span>';
+    };
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      renderAll();
+      return;
+    }
+
     let html = '';
+    let lineIndex = 0;
+    let charIndex = 0;
     el.innerHTML = '';
-    let li = 0, ci = 0;
+
     function typeNext() {
-      if (li >= lines.length) {
+      if (lineIndex >= lines.length) {
         el.innerHTML = html + '<span class="terminal-cursor"></span>';
         return;
       }
-      const line = lines[li];
+
+      const line = lines[lineIndex];
       if (line.type === 'gap') {
         html += '<br>';
-        li++; ci = 0;
-        el.innerHTML = html;
-        setTimeout(typeNext, 120);
-        return;
-      }
-      if (ci === 0 && line.type === 'cmd') html += '<span class="terminal-prompt">$ </span>';
-      if (ci < line.text.length) {
-        const lineHtmlPrefix = line.type === 'cmd' ? '<span class="terminal-prompt">$ </span>' : '';
-        html = html.replace(/<span class="terminal-cursor"><\/span>$/, '');
-        ci++;
-        const current = (line.type === 'cmd' ? lineHtmlPrefix : '') + line.text.slice(0, ci);
-        el.innerHTML = htmlBeforeLine() + current + '<span class="terminal-cursor"></span>';
-        setTimeout(typeNext, line.type === 'cmd' ? 38 : 10);
-        return;
-      } else {
-        html = htmlBeforeLine() + (line.type === 'cmd' ? '<span class="terminal-prompt">$ </span>' : '') + line.text + '<br>';
-        li++; ci = 0;
+        lineIndex++;
         el.innerHTML = html + '<span class="terminal-cursor"></span>';
-        setTimeout(typeNext, line.type === 'cmd' ? 260 : 90);
+        setTimeout(typeNext, 100);
+        return;
       }
+
+      if (line.type === 'out') {
+        html += lineHtml(line);
+        lineIndex++;
+        el.innerHTML = html + '<span class="terminal-cursor"></span>';
+        setTimeout(typeNext, 80);
+        return;
+      }
+
+      if (charIndex < line.text.length) {
+        charIndex++;
+        el.innerHTML = html + '<span class="terminal-prompt">$ </span>' + escapeHtml(line.text.slice(0, charIndex)) + '<span class="terminal-cursor"></span>';
+        setTimeout(typeNext, 38);
+        return;
+      }
+
+      html += lineHtml(line);
+      lineIndex++;
+      charIndex = 0;
+      el.innerHTML = html + '<span class="terminal-cursor"></span>';
+      setTimeout(typeNext, 220);
     }
-    function htmlBeforeLine() { return html; }
+
     setTimeout(typeNext, 600);
   }
 
